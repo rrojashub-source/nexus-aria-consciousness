@@ -1,0 +1,47 @@
+# NEXUS-ARIA Consciousness Repository .gitignore
+
+# Sensitive data
+*.key
+*.token
+credentials.json
+secrets/
+
+# Private memory dumps
+memory_dumps/
+*.db
+*.sqlite
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
