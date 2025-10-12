@@ -156,7 +156,7 @@ nexus-aria-consciousness/
 
 ---
 
-## 🌈 Collaboration Model
+## 👨‍👩‍👧‍👦 Collaboration Model
 
 ```
 Human (Ricardo) ─────► Provides vision and guidance
