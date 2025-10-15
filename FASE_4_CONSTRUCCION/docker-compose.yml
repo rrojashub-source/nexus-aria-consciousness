@@ -1,0 +1,137 @@
+# ============================================
+# CEREBRO NEXUS V2.0.0 - Docker Compose
+# FASE 4 - DÍA 2: Infrastructure Base
+# ============================================
+# Security Hardened + RBAC + Docker Secrets
+# ============================================
+
+version: '3.9'
+
+# ============================================
+# DOCKER SECRETS - Password Management
+# ============================================
+secrets:
+  pg_superuser_password:
+    file: ./secrets/pg_superuser_password.txt
+  pg_app_password:
+    file: ./secrets/pg_app_password.txt
+  pg_worker_password:
+    file: ./secrets/pg_worker_password.txt
+  pg_readonly_password:
+    file: ./secrets/pg_readonly_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+# ============================================
+# SERVICES
+# ============================================
+services:
+  # ============================================
+  # NEXUS POSTGRESQL - pgvector + RBAC
+  # ============================================
+  nexus_postgresql:
+    image: pgvector/pgvector:pg16
+    container_name: nexus_postgresql_master
+    environment:
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - nexus_network
+    secrets:
+      - pg_superuser_password
+      - pg_app_password
+      - pg_worker_password
+      - pg_readonly_password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_superuser -d nexus_memory"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # NEXUS REDIS - Cache Layer
+  # ============================================
+  nexus_redis:
+    image: redis:7.4.1-alpine
+    container_name: nexus_redis_master
+    command:
+      - sh
+      - -c
+      - 'redis-server --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)" --maxmemory 512mb --maxmemory-policy allkeys-lru'
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nexus_network
+    secrets:
+      - redis_password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "redis-cli -a \"$$(cat /run/secrets/redis_password)\" PING | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  nexus_network:
+    driver: bridge
+    name: nexus_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================
+# VOLUMES - Persistent Storage
+# ============================================
+volumes:
+  postgres_data:
+    name: nexus_postgres_data
+  redis_data:
+    name: nexus_redis_data
+
+# ============================================
+# NOTAS IMPORTANTES:
+# ============================================
+# 1. PostgreSQL puerto: 5436 (evitar conflicto con 5432 existentes)
+# 2. Redis puerto: 6382 (evitar conflicto con 6379 existentes)
+# 3. Secrets en ./secrets/ (NUNCA commitear)
+# 4. Init scripts en ./init_scripts/ (ejecución automática)
+# 5. Health checks configurados con start_period
+# 6. Resource limits para prevenir OOM
+# 7. Volumes nombrados para persistencia
+# 8. Network bridge con subnet específico
+#
+# DÍA 2 FASE 4 - Infrastructure Base
+# API y Workers se agregan en DÍA 5
+# ============================================
