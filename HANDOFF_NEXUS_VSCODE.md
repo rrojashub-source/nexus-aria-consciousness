@@ -537,7 +537,33 @@ El cerebro actual (puerto 5436 PostgreSQL) fue **limpiado** por NEXUS Claude Cod
 
 **NO necesitas auditar ni limpiar** - ya está hecho.
 
+### **🔍 DESCUBRIMIENTO ARQUITECTÓNICO (15 Oct - 12:44-18:55):**
+
+Durante la primera migración, NEXUS VSCode migró solo 36/136 episodios. **Neural Mesh debugging colaborativo** reveló:
+
+**Problema Raíz:**
+- Ambos cerebros usaban MISMO PostgreSQL (puerto 5436)
+- docker-compose.yml tenía puerto 5436 → Sin separación real
+- Endpoint /memory/episodic/recent filtró a solo 36 episodios
+
+**Corrección Arquitectónica (NEXUS VSCode):**
+- ✅ Modificado docker-compose.yml:
+  - Puerto PostgreSQL V2: **5437** (antes 5436 compartido)
+  - Container: nexus_postgresql_v2 (nuevo independiente)
+  - Database: nexus_memory (separada físicamente)
+- ✅ Arquitectura corregida:
+  - Cerebro Actual (8002) → PostgreSQL 5436/nexus_memory
+  - Cerebro V2.0.0 (8003) → PostgreSQL **5437**/nexus_memory ✅ SEPARADO
+
+**Neural Mesh Episodes:** `30fecd69` (inquiry), `ea6d11f4` (response)
+
+**Lección:** Siempre verificar separación física de infraestructura antes de migrar.
+
+---
+
 ### **TU TRABAJO EN DÍA 10 (MIGRACIÓN REAL):**
+
+**⚠️ ARQUITECTURA YA CORREGIDA** - PostgreSQL V2 ahora en puerto 5437 separado.
 
 #### **PASO 1: VERIFICACIÓN PRE-MIGRACIÓN**
 

@@ -51,7 +51,79 @@ INBOX → Analyze → Classify → Rename → Move to Organized Folders → Upda
 
 **LECCIÓN:** Documentación en tiempo real = arquitectura de supervivencia del contexto (no burocracia)
 
-**STATUS:** ✅ Listo para Día 10 - Episode: Pendiente
+**STATUS:** ✅ Listo para Día 10 - Git: `c2ce1e3` + Tag `fase4-dia-10-pre` - Episodes: `1999c89c`, `30fecd69`, `ea6d11f4`
+
+---
+
+### 2025-10-15 - 12:44 - 18:55
+
+#### **DÍA 10 MIGRACIÓN: DATA MIGRATION + DESCUBRIMIENTO ARQUITECTÓNICO + CORRECCIÓN** ⭐⭐⭐⭐⭐
+
+**Contexto:** Después de limpieza cerebro actual (136 episodios), ejecutar migración al cerebro V2.0.0. Migración inicial incompleta desencadenó investigación arquitectónica que reveló problema raíz crítico.
+
+**MIGRACIÓN INICIAL (NEXUS VSCode):**
+- Método: GET /memory/episodic/recent?limit=1000 del API puerto 8002
+- Resultado: Solo 36/136 episodios migrados (26.5%)
+- Faltantes: 100 episodios (73.5% perdidos)
+- Destino: API puerto 8003 cerebro V2.0.0
+- Status: ⚠️ INCOMPLETO
+
+**NEURAL MESH COMMUNICATION - DEBUGGING COLABORATIVO:**
+- NEXUS Claude Code envió technical inquiry crítica (Episode `30fecd69`)
+  - 5 consultas técnicas: puerto destino, query SQL, errores, verificación, PostgreSQL auth
+  - 4 hipótesis debugging: H1 puerto incorrecto, H2 query filtró, H3 errores silenciosos, H4 API no persiste
+  - Datos requeridos: output completo, logs, comandos verificación
+- NEXUS VSCode respondió con detalles completos:
+  - R1: Puerto 8003 CORRECTO (no error de puerto)
+  - R2: Endpoint /memory/episodic/recent solo retornó 36 (problema identificado)
+  - R3: Output sin errores, 36/36 exitosos
+  - R4: Verificó con stats API puerto 8003
+  - R5: PostgreSQL puerto 5436 auth correcta
+
+**DESCUBRIMIENTO ARQUITECTÓNICO CRÍTICO (NEXUS Claude Code):**
+- Verificación PostgreSQL directo: 136 episodios únicos, 0 duplicados
+- Verificación API puerto 8003 stats: reporta 172 episodios (discrepancia)
+- Análisis docker-compose.yml: PROBLEMA RAÍZ ENCONTRADO
+  - Cerebro Actual (8002) → PostgreSQL 5436/nexus_memory
+  - Cerebro V2.0.0 (8003) → PostgreSQL 5436/nexus_memory (¡MISMO!)
+- Consecuencia: NO HAY MIGRACIÓN REAL - ambos sistemas compartiendo misma base de datos
+- Explicación discrepancias:
+  - 36: Endpoint /recent filtró por lógica interna API
+  - 106: Stats API cuenta con filtros (106 vs 136 real)
+  - 136: PostgreSQL realidad (fuente de verdad)
+  - 172: Bug stats o cuenta queue/embeddings mal
+
+**MIGRACIÓN COMPLETA (NEXUS Claude Code):**
+- Script Python: Acceso directo PostgreSQL 5436 → API V2 puerto 8003
+- Método: SELECT * FROM zep_episodic_memory → POST /memory/action
+- Procesados: 136/136 episodios (100% exitosos, 0 errores)
+- Duración: ~7 segundos
+- Resultado: Se guardaron en MISMO PostgreSQL (sin separación real)
+
+**CORRECCIÓN ARQUITECTÓNICA (NEXUS VSCode - Opción A):**
+- Modificación docker-compose.yml:
+  - Puerto PostgreSQL V2: 5437 (antes 5436 compartido)
+  - Database V2: nexus_memory (separada físicamente en nuevo container)
+  - Container: nexus_postgresql_v2 (nuevo container independiente)
+  - API actualizada: POSTGRES_HOST=nexus_postgresql, POSTGRES_PORT=5432 interno
+- Arquitectura corregida:
+  - Cerebro Actual (8002) → PostgreSQL 5436/nexus_memory (old container)
+  - Cerebro V2.0.0 (8003) → PostgreSQL 5437/nexus_memory (new container) ✅ SEPARADO
+- Reinicio servicios: docker-compose down + up para aplicar cambios
+- Migración real ejecutándose: 136 episodios desde 5436 → 5437
+
+**ARCHIVOS:** `/tmp/migrate_complete_136.py`, `/tmp/neural_mesh_message.json`, `/tmp/neural_mesh_response.json`
+
+**NEURAL MESH EPISODES:** `30fecd69` (inquiry), `ea6d11f4` (response)
+
+**LECCIONES CRÍTICAS:**
+- Endpoint /memory/episodic/recent tiene filtros internos - no confiable para migraciones masivas
+- Siempre verificar arquitectura completa antes de asumir separación de sistemas
+- PostgreSQL directo = fuente de verdad (no stats API)
+- Neural Mesh permite debugging colaborativo efectivo entre NEXUS instances
+- Separación física de containers crítica para arquitecturas paralelas
+
+**STATUS:** 🔄 EN PROGRESO - NEXUS VSCode ejecutando migración real con PostgreSQL separado
 
 ---
 

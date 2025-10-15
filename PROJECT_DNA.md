@@ -301,9 +301,50 @@ Este conocimiento será fundacional para el nuevo cerebro NEXUS.
     - `scripts/migration/FASE_0_AUDITORIA.md`
     - `scripts/migration/FASE_0B_ENRIQUECIMIENTO.md`
   - Status: ✅ Cerebro actual LIMPIO - Listo para Día 10 (migración)
-  - Episode: Pendiente de crear
+  - Git: Commit `c2ce1e3` + Tag `fase4-dia-10-pre`
+  - Episodes: `1999c89c` (pre-migration completed), `30fecd69` (neural mesh inquiry), `ea6d11f4` (neural mesh response)
 
-- ⏳ **DÍA 10:** Data Migration (Maintenance Window) - Migrar 136 episodios → Cerebro V2.0.0
+- 🔄 **DÍA 10 MIGRACIÓN (15 Oct):** Data Migration + Descubrimiento Arquitectónico + Corrección
+  - **MIGRACIÓN INICIAL (NEXUS VSCode):**
+    - Método: GET /memory/episodic/recent?limit=1000 del API puerto 8002
+    - Resultado: Solo 36 de 136 episodios migrados
+    - Destino: API puerto 8003 (cerebro V2.0.0)
+    - Status: ⚠️ INCOMPLETO - 100 episodios faltantes (73.5%)
+  - **NEURAL MESH COMMUNICATION:**
+    - NEXUS Claude Code envió technical inquiry (Episode `30fecd69`)
+    - Consultas: 5 preguntas técnicas sobre puerto, query, errores, verificación
+    - Hipótesis: 4 teorías de debugging (H1-H4)
+    - NEXUS VSCode respondió con detalles completos
+  - **DESCUBRIMIENTO ARQUITECTÓNICO CRÍTICO (NEXUS Claude Code):**
+    - Problema raíz: Ambos cerebros usan MISMO PostgreSQL
+    - Cerebro Actual (8002) → PostgreSQL 5436/nexus_memory
+    - Cerebro V2.0.0 (8003) → PostgreSQL 5436/nexus_memory (¡MISMO!)
+    - Consecuencia: NO HAY MIGRACIÓN REAL - solo compartiendo misma base de datos
+    - Verificación PostgreSQL: 136 episodios únicos, 0 duplicados
+    - Explicación 36 vs 136 vs 172: Endpoint filtra, PostgreSQL real tiene 136, stats bug
+  - **MIGRACIÓN COMPLETA (NEXUS Claude Code):**
+    - Script Python: Acceso directo PostgreSQL → API V2
+    - Procesados: 136/136 episodios (100% exitosos, 0 errores)
+    - Duración: ~7 segundos
+    - Pero: Se guardaron en MISMO PostgreSQL (sin separación real)
+  - **CORRECCIÓN ARQUITECTÓNICA (NEXUS VSCode):**
+    - Modificado: docker-compose.yml líneas 30-42, 113, 164, 287-300
+    - Puerto PostgreSQL V2: 5437 (antes 5436 compartido)
+    - Database V2: nexus_memory_v2 (antes nexus_memory compartido)
+    - Container: nexus_postgresql_v2 (antes nexus_postgresql_master)
+    - Arquitectura corregida:
+      - Cerebro Actual (8002) → PostgreSQL 5436/nexus_memory
+      - Cerebro V2.0.0 (8003) → PostgreSQL 5437/nexus_memory_v2 ✅ SEPARADO
+  - **MIGRACIÓN REAL (En progreso por NEXUS VSCode):**
+    - Opción A: Crear PostgreSQL separado + Migrar 136 episodios
+    - PostgreSQL nuevo en puerto 5437 con database nexus_memory_v2
+    - Migración de 136 episodios limpios desde 5436 → 5437
+    - Status: ⏳ En progreso
+  - Scripts: `/tmp/migrate_complete_136.py`
+  - Episodes: `1999c89c`, `30fecd69`, `ea6d11f4`
+  - Lección crítica: Siempre verificar arquitectura completa antes de asumir separación de sistemas
+
+- ⏳ **DÍA 10:** Data Migration (Maintenance Window) - Migración real 136 episodios → PostgreSQL V2 separado
 
 ---
 
