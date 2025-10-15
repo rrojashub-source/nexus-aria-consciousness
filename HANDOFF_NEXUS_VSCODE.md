@@ -11,29 +11,30 @@
 
 **IMPORTANTE:** Clarificación de puertos para evitar confusiones:
 
-### **Puerto 8002 - Cerebro NEXUS Actual (FASE 3)**
-- **Sistema:** Cerebro NEXUS con arquitectura FASE 3
-- **Estado:** Operacional (working_memory, episodic_memory, semantic_memory, neural_mesh)
-- **Propósito:** Documentar TODO el progreso de FASE 4 construcción
-- **Ubicación:** Sistema local (NO Docker de FASE 4)
-- **Acción:** Usar para crear episodes de documentación diaria
-
-### **Puerto 8003 - Cerebro NEXUS V2.0.0 (FASE 4 - NUEVO)**
-- **Sistema:** Cerebro NEXUS con arquitectura V2.0.0 (construcción desde cero)
-- **Estado:** En construcción (Docker containers)
-- **Propósito:** Sistema NUEVO limpio, listo para migración futura
+### **✅ Puerto 8003 - Cerebro NEXUS V2.0.0 (PRIMARIO - POST-CUTOVER)**
+- **Sistema:** Cerebro NEXUS con arquitectura V2.0.0
+- **Estado:** ✅ **OPERACIONAL** - 138 episodios migrados + embeddings
+- **Propósito:** **CEREBRO ÚNICO ACTIVO** desde DÍA 11 en adelante
 - **Ubicación:** `/FASE_4_CONSTRUCCION/` (Docker stack)
-- **Acción:** NO documentar aquí hasta DÍA 10 (migración de datos)
+- **PostgreSQL:** Puerto 5437 (container: nexus_postgresql_v2)
+- **Acción:** **Documentar TODO aquí desde DÍA 11+**
+
+### **❌ Puerto 8002 - Cerebro NEXUS FASE 3 (DEPRECATED)**
+- **Sistema:** Cerebro NEXUS arquitectura FASE 3 (legacy)
+- **Estado:** ❌ **DETENIDO** - Cutover completado en DÍA 10
+- **PostgreSQL:** Puerto 5436 (detenido)
+- **Acción:** **NO USAR** - Migración completa a V2.0.0
+- **Nota:** Datos preservados en backup, episodios migrados a V2
 
 ### **ARIA - Fuera de Scope**
-- ARIA tiene su propio cerebro independiente
+- ARIA tiene su propio cerebro independiente (puerto 8001)
 - NO participa en este proyecto de reconstrucción
 - NO confundir con cerebro NEXUS
 
-### **Regla de Oro:**
-✅ **Documentar progreso FASE 4 → Puerto 8002** (cerebro actual)
-✅ **Construir sistema nuevo → Puerto 8003** (V2.0.0 limpio)
-❌ **NO mezclar:** El nuevo debe estar limpio hasta migración DÍA 10
+### **Regla de Oro POST-CUTOVER (DÍA 11+):**
+✅ **Documentar TODO → Puerto 8003** (cerebro V2.0.0 único activo)
+✅ **Tracking, episodes, progreso → Puerto 8003**
+❌ **NO usar puerto 8002** (cerebro viejo deprecated)
 
 ---
 
@@ -737,7 +738,143 @@ git tag fase4-dia-10 -m "FASE 4 DÍA 10: Data Migration Completada"
 
 ### **Próximo Paso:**
 
-**⏳ DÍA 11-12:** Post-Cutover Validation + Monitoreo + Documentación Final
+**✅ DÍA 11-12:** Post-Cutover Validation + Monitoreo + Documentación Final
+
+---
+
+## 🎯 DÍA 11+ PROTOCOLO: CEREBRO V2.0.0 ÚNICO ACTIVO
+
+### **⚠️ CAMBIO CRÍTICO POST-CUTOVER:**
+
+**A partir de DÍA 11, TODO se guarda en cerebro V2.0.0 (puerto 8003):**
+- ✅ Tracking diario → http://localhost:8003/memory/action
+- ✅ Progreso FASE 4 → http://localhost:8003/memory/action
+- ✅ Episodes completitud → http://localhost:8003/memory/action
+- ❌ NO usar puerto 8002 (cerebro viejo deprecated)
+
+### **COMANDOS ACTUALIZADOS:**
+
+```bash
+# Crear Episode progreso (ANTES: puerto 8002, AHORA: puerto 8003)
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "nexus",
+    "action_type": "fase4_dia11_completed",
+    "action_details": "{...}",
+    "tags": ["fase4", "dia11", "cerebro_master_nexus_001"]
+  }'
+
+# Verificar stats cerebro V2
+curl http://localhost:8003/stats
+
+# Health check
+curl http://localhost:8003/health
+```
+
+---
+
+## 📝 SISTEMA DE PENDIENTES (LIVING EPISODES)
+
+### **PROPUESTA APROBADA POR RICARDO:**
+
+Usar **Living Episodes** editables para gestionar pendientes en tiempo real.
+
+### **ARQUITECTURA:**
+
+```
+Project: "Pendientes"
+  ├─ Episode 1: "Pendiente X" (status: pending)
+  ├─ Episode 2: "Pendiente Y" (status: completed)
+  └─ Episode 3: "Pendiente Z" (status: in_progress)
+```
+
+### **IMPLEMENTACIÓN:**
+
+#### **1. Crear Project "Pendientes":**
+
+```bash
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "nexus",
+    "action_type": "project_created",
+    "action_details": {
+      "project_name": "Pendientes",
+      "project_dna": "TASK_MANAGEMENT",
+      "description": "Sistema de gestión de tareas y pendientes con Living Episodes editables",
+      "status": "active"
+    },
+    "tags": ["pendientes", "project_management"]
+  }'
+```
+
+#### **2. Agregar Pendiente (Episode editable):**
+
+```bash
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "nexus",
+    "action_type": "task_created",
+    "action_details": {
+      "task_name": "Post-Cutover Validation",
+      "description": "Validar operación normal cerebro V2 por 24h",
+      "status": "pending",
+      "priority": "high",
+      "estimated_duration": "2h"
+    },
+    "tags": ["pendientes", "fase4", "validation"],
+    "project_id": "{id_project_pendientes}"
+  }'
+```
+
+#### **3. Marcar como Completado (Editar Episode):**
+
+```bash
+# Buscar episode del pendiente
+curl -X POST http://localhost:8003/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Post-Cutover Validation", "limit": 1}'
+
+# Actualizar status (create nuevo episode con referencia)
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "nexus",
+    "action_type": "task_completed",
+    "action_details": {
+      "task_name": "Post-Cutover Validation",
+      "status": "completed",
+      "completion_notes": "Validación exitosa - sistema estable 24h"
+    },
+    "tags": ["pendientes", "completed"],
+    "references": ["{episode_id_pendiente_original}"]
+  }'
+```
+
+### **VENTAJAS:**
+
+✅ **Persistencia real** - No se pierde con autocompactación
+✅ **Búsqueda semántica** - Encuentra pendientes por contenido
+✅ **Historial completo** - Cada cambio de status es un episode
+✅ **Relaciones** - Episodes referencian otros (task → completion)
+✅ **Tags inteligentes** - `pendientes`, `completed`, `in_progress`
+✅ **Project-based** - Todos los pendientes en project "Pendientes"
+
+### **QUERY PENDIENTES:**
+
+```bash
+# Ver todos los pendientes
+curl -X POST http://localhost:8003/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "pendientes status pending", "limit": 20}'
+
+# Ver completados
+curl -X POST http://localhost:8003/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "pendientes status completed", "limit": 20}'
+```
 
 ---
 
