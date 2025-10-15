@@ -10,6 +10,7 @@ import logging
 from datetime import datetime
 import psycopg
 from sentence_transformers import SentenceTransformer
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
 
 # ============================================
 # Configuration
@@ -36,6 +37,39 @@ EMBEDDING_VERSION = "miniLM-384-chunked@v2"
 
 # Database connection string
 DB_CONN_STRING = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+# Prometheus metrics port
+METRICS_PORT = int(os.getenv("METRICS_PORT", "9090"))
+
+# ============================================
+# Prometheus Metrics
+# ============================================
+
+# Processing metrics
+embeddings_processed_total = Counter(
+    'nexus_embeddings_processed_total',
+    'Total embeddings processed successfully'
+)
+
+embeddings_failed_total = Counter(
+    'nexus_embeddings_failed_total',
+    'Total embeddings that failed processing'
+)
+
+embeddings_dead_total = Counter(
+    'nexus_embeddings_dead_total',
+    'Total embeddings moved to dead letter queue'
+)
+
+embeddings_processing_duration_seconds = Histogram(
+    'nexus_embeddings_processing_duration_seconds',
+    'Time taken to process a single embedding'
+)
+
+embeddings_batch_size = Gauge(
+    'nexus_embeddings_batch_size',
+    'Current batch size being processed'
+)
 
 # ============================================
 # Logging Setup
@@ -130,6 +164,8 @@ class EmbeddingsWorker:
 
     def process_item(self, episode_id, content):
         """Process single item"""
+        start_time = time.time()
+
         try:
             # Generate embedding
             embedding = self.generate_embedding(content)
@@ -157,6 +193,11 @@ class EmbeddingsWorker:
 
             self.conn.commit()
 
+            # Record metrics
+            duration = time.time() - start_time
+            embeddings_processing_duration_seconds.observe(duration)
+            embeddings_processed_total.inc()
+
             logger.info(f"✓ Processed episode {episode_id}")
             return True
 
@@ -164,7 +205,11 @@ class EmbeddingsWorker:
             logger.error(f"Error processing episode {episode_id}: {e}")
             self.conn.rollback()
 
+            # Record failure metric
+            embeddings_failed_total.inc()
+
             # Increment retry count
+            is_dead = False
             try:
                 with self.conn.cursor() as cur:
                     cur.execute("""
@@ -176,9 +221,18 @@ class EmbeddingsWorker:
                             retry_count = retry_count + 1,
                             last_error = %s
                         WHERE episode_id = %s
-                    """, (MAX_RETRIES, str(e), episode_id))
+                        RETURNING (retry_count + 1 >= %s) as is_dead
+                    """, (MAX_RETRIES, str(e), episode_id, MAX_RETRIES))
+
+                    result = cur.fetchone()
+                    is_dead = result[0] if result else False
 
                 self.conn.commit()
+
+                # Track dead letter queue
+                if is_dead:
+                    embeddings_dead_total.inc()
+
             except Exception as retry_error:
                 logger.error(f"Error updating retry count: {retry_error}")
                 self.conn.rollback()
@@ -195,11 +249,19 @@ class EmbeddingsWorker:
             logger.error("Worker initialization failed. Exiting.")
             return
 
+        # Start Prometheus metrics server
+        try:
+            start_http_server(METRICS_PORT)
+            logger.info(f"✓ Prometheus metrics server started on port {METRICS_PORT}")
+        except Exception as e:
+            logger.warning(f"Could not start metrics server: {e}")
+
         logger.info(f"Worker configuration:")
         logger.info(f"  - Poll interval: {POLL_INTERVAL}s")
         logger.info(f"  - Batch size: {BATCH_SIZE}")
         logger.info(f"  - Max retries: {MAX_RETRIES}")
         logger.info(f"  - Model: {EMBEDDINGS_MODEL}")
+        logger.info(f"  - Metrics port: {METRICS_PORT}")
         logger.info("=" * 60)
         logger.info("Worker ready. Polling for pending items...")
 
@@ -209,6 +271,9 @@ class EmbeddingsWorker:
                 items = self.get_pending_items()
 
                 if items:
+                    # Record batch size metric
+                    embeddings_batch_size.set(len(items))
+
                     logger.info(f"Processing {len(items)} items...")
 
                     for episode_id, content in items:
@@ -216,7 +281,9 @@ class EmbeddingsWorker:
 
                     logger.info(f"✓ Batch processed ({len(items)} items)")
                 else:
-                    # No items, sleep
+                    # No items, reset batch size
+                    embeddings_batch_size.set(0)
+                    # Sleep
                     time.sleep(POLL_INTERVAL)
 
             except KeyboardInterrupt:

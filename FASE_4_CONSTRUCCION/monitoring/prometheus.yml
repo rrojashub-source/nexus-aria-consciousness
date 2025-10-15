@@ -1,0 +1,58 @@
+# ============================================
+# NEXUS CEREBRO V2.0.0 - Prometheus Configuration
+# FASE 4 - DÍA 6: Observability
+# ============================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'nexus_v2'
+    environment: 'production'
+
+# Alertmanager configuration (opcional para DÍA 6)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Scrape configurations
+scrape_configs:
+  # ============================================
+  # NEXUS API Metrics
+  # ============================================
+  - job_name: 'nexus_api'
+    static_configs:
+      - targets: ['nexus_api:8003']
+        labels:
+          service: 'api'
+          component: 'fastapi'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # ============================================
+  # NEXUS Embeddings Worker Metrics
+  # ============================================
+  - job_name: 'nexus_embeddings_worker'
+    static_configs:
+      - targets: ['nexus_embeddings_worker:9090']
+        labels:
+          service: 'embeddings_worker'
+          component: 'background_worker'
+    scrape_interval: 10s
+
+  # ============================================
+  # Prometheus Self-Monitoring
+  # ============================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9091']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+# ============================================
+# Recording Rules (opcional - performance optimization)
+# ============================================
+# rule_files:
+#   - 'rules/*.yml'

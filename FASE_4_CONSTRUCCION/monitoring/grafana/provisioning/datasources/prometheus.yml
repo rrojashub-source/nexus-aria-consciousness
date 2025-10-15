@@ -1,0 +1,17 @@
+# ============================================
+# NEXUS CEREBRO V2.0.0 - Grafana Datasource
+# FASE 4 - DÍA 6: Prometheus Integration
+# ============================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://nexus_prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: '15s'

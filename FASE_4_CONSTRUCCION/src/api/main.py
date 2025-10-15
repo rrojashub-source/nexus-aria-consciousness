@@ -13,6 +13,9 @@ import os
 import psycopg
 from psycopg.types.json import Json
 from contextlib import asynccontextmanager
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from starlette.responses import Response
+import time
 
 # ============================================
 # Configuration
@@ -29,6 +32,45 @@ try:
         POSTGRES_PASSWORD = f.read().strip()
 except FileNotFoundError:
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "default_password")
+
+# ============================================
+# Prometheus Metrics
+# ============================================
+
+# API Metrics
+api_requests_total = Counter(
+    'nexus_api_requests_total',
+    'Total API requests',
+    ['method', 'endpoint', 'status']
+)
+
+api_request_duration_seconds = Histogram(
+    'nexus_api_request_duration_seconds',
+    'API request duration in seconds',
+    ['method', 'endpoint']
+)
+
+# Memory Metrics
+episodes_created_total = Counter(
+    'nexus_episodes_created_total',
+    'Total episodes created'
+)
+
+episodes_total = Gauge(
+    'nexus_episodes_total',
+    'Total episodes in database'
+)
+
+episodes_with_embeddings = Gauge(
+    'nexus_episodes_with_embeddings',
+    'Total episodes with embeddings generated'
+)
+
+embeddings_queue_depth = Gauge(
+    'nexus_embeddings_queue_depth',
+    'Current depth of embeddings queue',
+    ['state']
+)
 
 # ============================================
 # Database Connection
@@ -86,6 +128,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Prometheus Middleware for automatic tracking
+@app.middleware("http")
+async def prometheus_middleware(request, call_next):
+    """Track all HTTP requests with Prometheus metrics"""
+    start_time = time.time()
+
+    # Execute request
+    response = await call_next(request)
+
+    # Calculate duration
+    duration = time.time() - start_time
+
+    # Record metrics
+    endpoint = request.url.path
+    method = request.method
+    status_code = str(response.status_code)
+
+    api_requests_total.labels(method=method, endpoint=endpoint, status=status_code).inc()
+    api_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(duration)
+
+    return response
 
 # ============================================
 # Helper Functions
@@ -182,6 +246,9 @@ async def memory_action(request: MemoryActionRequest):
         conn.commit()
         conn.close()
 
+        # Increment Prometheus counter
+        episodes_created_total.inc()
+
         return MemoryActionResponse(
             success=True,
             episode_id=episode_id,
@@ -244,7 +311,7 @@ async def get_recent_episodes(limit: int = 10):
 
 @app.get("/stats", tags=["Stats"])
 async def get_stats():
-    """Get database statistics"""
+    """Get database statistics and update Prometheus gauges"""
     try:
         conn = get_db_connection()
 
@@ -259,15 +326,24 @@ async def get_stats():
 
             # Count with embeddings
             cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory WHERE embedding IS NOT NULL")
-            episodes_with_embeddings = cur.fetchone()[0]
+            total_with_embeddings = cur.fetchone()[0]
 
         conn.close()
+
+        # Update Prometheus gauges
+        episodes_total.set(total_episodes)
+        episodes_with_embeddings.set(total_with_embeddings)
+
+        # Update queue depth metrics
+        for state in ['pending', 'processing', 'done', 'dead']:
+            count = queue_stats.get(state, 0)
+            embeddings_queue_depth.labels(state=state).set(count)
 
         return {
             "success": True,
             "stats": {
                 "total_episodes": total_episodes,
-                "episodes_with_embeddings": episodes_with_embeddings,
+                "episodes_with_embeddings": total_with_embeddings,
                 "embeddings_queue": queue_stats
             }
         }
@@ -277,6 +353,11 @@ async def get_stats():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching stats: {str(e)}"
         )
+
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """Prometheus metrics endpoint"""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # ============================================
 # Main

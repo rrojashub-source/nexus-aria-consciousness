@@ -163,6 +163,9 @@ services:
       BATCH_SIZE: 10
       MAX_RETRIES: 5
       EMBEDDINGS_MODEL: sentence-transformers/all-MiniLM-L6-v2
+      METRICS_PORT: 9090
+    ports:
+      - "9090:9090"  # Prometheus metrics
     volumes:
       - ./src:/app/src:ro
       - ./logs:/app/logs
@@ -184,6 +187,70 @@ services:
           memory: 512M
     command: python -m src.workers.embeddings_worker
 
+  # ============================================
+  # PROMETHEUS - Metrics Collection
+  # ============================================
+  nexus_prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: nexus_prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9091:9090"  # Prometheus UI
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    depends_on:
+      - nexus_api
+      - nexus_embeddings_worker
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ============================================
+  # GRAFANA - Visualization Dashboard
+  # ============================================
+  nexus_grafana:
+    image: grafana/grafana:11.3.0
+    container_name: nexus_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: nexus_admin_2025
+      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+    ports:
+      - "3001:3000"  # Grafana UI
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    depends_on:
+      - nexus_prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
 # ============================================
 # NETWORKS
 # ============================================
@@ -204,6 +271,10 @@ volumes:
     name: nexus_postgres_data
   redis_data:
     name: nexus_redis_data
+  prometheus_data:
+    name: nexus_prometheus_data
+  grafana_data:
+    name: nexus_grafana_data
 
 # ============================================
 # NOTAS IMPORTANTES:
