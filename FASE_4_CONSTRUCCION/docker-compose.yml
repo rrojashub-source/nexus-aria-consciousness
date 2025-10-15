@@ -99,6 +99,91 @@ services:
           cpus: '0.25'
           memory: 256M
 
+  # ============================================
+  # NEXUS API - FastAPI Application
+  # ============================================
+  nexus_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus_api_master
+    environment:
+      POSTGRES_HOST: nexus_postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      API_PORT: 8002
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    networks:
+      - nexus_network
+    secrets:
+      - pg_superuser_password
+    depends_on:
+      nexus_postgresql:
+        condition: service_healthy
+      nexus_redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8002 --workers 2
+
+  # ============================================
+  # NEXUS EMBEDDINGS WORKER - Background Processing
+  # ============================================
+  nexus_embeddings_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus_embeddings_worker
+    environment:
+      POSTGRES_HOST: nexus_postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_worker
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_worker_password
+      POLL_INTERVAL: 5
+      BATCH_SIZE: 10
+      MAX_RETRIES: 5
+      EMBEDDINGS_MODEL: sentence-transformers/all-MiniLM-L6-v2
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    networks:
+      - nexus_network
+    secrets:
+      - pg_worker_password
+    depends_on:
+      nexus_postgresql:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: python -m src.workers.embeddings_worker
+
 # ============================================
 # NETWORKS
 # ============================================
@@ -132,6 +217,6 @@ volumes:
 # 7. Volumes nombrados para persistencia
 # 8. Network bridge con subnet específico
 #
-# DÍA 2 FASE 4 - Infrastructure Base
-# API y Workers se agregan en DÍA 5
+# DÍA 2-5 FASE 4 - Infrastructure + API + Workers
+# PostgreSQL + Redis + API + Embeddings Worker
 # ============================================
