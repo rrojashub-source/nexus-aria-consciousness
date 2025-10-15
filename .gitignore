@@ -1,0 +1,107 @@
+# CEREBRO_MASTER_NEXUS_001 - Git Ignore
+# FASE 4 - Construcción Paralela
+
+# ==============================
+# SECRETS - NUNCA COMMITEAR
+# ==============================
+**/secrets/*.txt
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ==============================
+# ENVIRONMENT & CONFIG
+# ==============================
+.env
+.env.local
+.env.*.local
+*.local.yml
+
+# ==============================
+# DOCKER & VOLUMES
+# ==============================
+docker-compose.override.yml
+.docker/
+volumes/
+**/data/
+**/logs/
+
+# ==============================
+# DATABASES & BACKUPS
+# ==============================
+*.sql
+*.dump
+*.rdb
+*.aof
+backups/
+*.backup
+
+# ==============================
+# PYTHON
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+env/
+ENV/
+.venv
+
+# ==============================
+# IDE & EDITORS
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ==============================
+# TESTING & COVERAGE
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# ==============================
+# MONITORING & METRICS
+# ==============================
+prometheus/data/
+grafana/data/
+alertmanager/data/
+
+# ==============================
+# TEMPORARY FILES
+# ==============================
+*.tmp
+*.temp
+*.log
+.cache/
+
+# ==============================
+# KEEP STRUCTURE FOLDERS
+# ==============================
+!.gitkeep
+!**/README.md
+!**/.gitignore
