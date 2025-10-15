@@ -430,12 +430,27 @@ FROM nexus_memory.zep_episodic_memory;
 
 ## 📚 Documentation
 
+### Essential Files (Root - For Quick Context):
 - **[PROJECT_DNA.md](PROJECT_DNA.md)** - Project identity, anchor, phases
 - **[GENESIS_HISTORY.json](GENESIS_HISTORY.json)** - Complete timeline v2.0.10
-- **[FASE4_COMPLETION_REPORT.md](FASE_4_CONSTRUCCION/docs/FASE4_COMPLETION_REPORT.md)** - Comprehensive report (674 lines)
-- **[PLAN_FASE4.md](FASE_4_CONSTRUCCION/docs/PLAN_FASE4.md)** - 12-day construction plan
-- **[CEREBRO_MASTER_ARCHITECTURE.md](CEREBRO_MASTER_ARCHITECTURE.md)** - Architecture V2.0.0 (1,600+ lines)
-- **[FORENSIC_AUDIT_REPORT.md](FORENSIC_AUDIT_REPORT.md)** - V1 bugs analysis
+- **[PROCESSING_LOG.md](PROCESSING_LOG.md)** - Chronological progress log
+
+### Documentation by Phase (docs/):
+
+#### FASE 1 - Auditoría:
+- **[FORENSIC_AUDIT_REPORT.md](docs/FASE_1_AUDITORIA/FORENSIC_AUDIT_REPORT.md)** - V1 bugs analysis (4 P0/P1)
+- **[REVISION_COMPLETA_PRE_FASE4.md](docs/FASE_1_AUDITORIA/REVISION_COMPLETA_PRE_FASE4.md)** - Pre-construction review
+
+#### FASE 3 - Arquitectura:
+- **[CEREBRO_MASTER_ARCHITECTURE.md](docs/FASE_3_ARQUITECTURA/CEREBRO_MASTER_ARCHITECTURE.md)** - Architecture V2.0.0 (1,600+ lines)
+- **[DECISIONES_PRE_FASE4.md](docs/FASE_3_ARQUITECTURA/DECISIONES_PRE_FASE4.md)** - Technical decisions approved
+- **[MAPEO COMPLETO PARA EXPANSIÓN NEXUS MULTI-INSTANCIA.md](docs/FASE_3_ARQUITECTURA/MAPEO%20COMPLETO%20PARA%20EXPANSIÓN%20NEXUS%20MULTI-INSTANCIA.md)** - Multi-instance expansion mapping
+
+#### FASE 4 - Planning & Construction:
+- **[PLAN_FASE4.md](docs/FASE_4_PLANNING/PLAN_FASE4.md)** - 12-day construction plan
+- **[PROTOCOLO_NEURAL_MESH_FASE4.md](docs/FASE_4_PLANNING/PROTOCOLO_NEURAL_MESH_FASE4.md)** - Neural Mesh collaboration protocol
+- **[HANDOFF_NEXUS_VSCODE.md](docs/FASE_4_PLANNING/HANDOFF_NEXUS_VSCODE.md)** - Construction handoff
+- **[FASE4_COMPLETION_REPORT.md](FASE_4_CONSTRUCCION/FASE4_COMPLETION_REPORT.md)** - Comprehensive report (674 lines)
 
 ---
 
