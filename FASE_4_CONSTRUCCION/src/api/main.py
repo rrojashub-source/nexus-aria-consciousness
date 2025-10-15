@@ -18,6 +18,7 @@ from starlette.responses import Response
 import time
 import redis
 import json as json_module
+from sentence_transformers import SentenceTransformer
 
 # ============================================
 # Configuration
@@ -96,6 +97,14 @@ except FileNotFoundError:
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
 
 # ============================================
+# Embeddings Model Configuration
+# ============================================
+EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+
+# Global model instance (loaded in lifespan)
+embeddings_model = None
+
+# ============================================
 # Pydantic Models
 # ============================================
 class MemoryActionRequest(BaseModel):
@@ -118,11 +127,33 @@ class HealthResponse(BaseModel):
     queue_depth: Optional[int] = None
     timestamp: datetime
 
+class SearchRequest(BaseModel):
+    query: str = Field(..., description="Search query text")
+    limit: int = Field(default=10, ge=1, le=100, description="Maximum number of results")
+    min_similarity: float = Field(default=0.5, ge=0.0, le=1.0, description="Minimum similarity threshold (0-1)")
+
+class SearchResult(BaseModel):
+    episode_id: str
+    content: str
+    similarity_score: float
+    importance_score: float
+    tags: List[str]
+    created_at: datetime
+
+class SearchResponse(BaseModel):
+    success: bool
+    query: str
+    count: int
+    results: List[SearchResult]
+    timestamp: datetime
+
 # ============================================
 # Lifespan Context Manager
 # ============================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global embeddings_model
+
     # Startup - Initialize Redis connection
     try:
         app.state.redis_client = redis.Redis(
@@ -139,6 +170,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠ Redis connection failed: {e}")
         app.state.redis_client = None
+
+    # Startup - Load embeddings model
+    try:
+        print(f"Loading embeddings model: {EMBEDDINGS_MODEL}")
+        embeddings_model = SentenceTransformer(EMBEDDINGS_MODEL)
+        print(f"✓ Embeddings model loaded successfully")
+    except Exception as e:
+        print(f"⚠ Embeddings model loading failed: {e}")
+        embeddings_model = None
 
     yield
 
@@ -240,6 +280,31 @@ def cache_invalidate(pattern: str):
                 redis_client.delete(*keys)
     except Exception as e:
         print(f"Cache invalidate error: {e}")
+
+def generate_query_embedding(text: str):
+    """Generate embedding for search query"""
+    global embeddings_model
+
+    if embeddings_model is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Embeddings model not loaded"
+        )
+
+    try:
+        # Truncate to 4000 chars (same as worker)
+        text_truncated = text[:4000] if len(text) > 4000 else text
+
+        # Generate embedding
+        embedding = embeddings_model.encode(text_truncated)
+
+        return embedding.tolist()
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating embedding: {str(e)}"
+        )
 
 # ============================================
 # Endpoints
@@ -427,6 +492,76 @@ async def get_recent_episodes(limit: int = 10):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching episodes: {str(e)}"
+        )
+
+@app.post("/memory/search", response_model=SearchResponse, tags=["Memory"])
+async def search_memories(request: SearchRequest):
+    """
+    Semantic search using vector embeddings
+    Uses cosine similarity with pgvector to find most relevant episodes
+    """
+    try:
+        # Generate embedding for search query
+        query_embedding = generate_query_embedding(request.query)
+
+        # Perform vector similarity search
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Cosine similarity search using pgvector <=> operator
+            # Lower distance = higher similarity
+            # Convert distance to similarity score (1 - distance)
+            cur.execute("""
+                SELECT
+                    episode_id,
+                    content,
+                    importance_score,
+                    tags,
+                    created_at,
+                    1 - (embedding <=> %s::vector) as similarity_score
+                FROM nexus_memory.zep_episodic_memory
+                WHERE embedding IS NOT NULL
+                    AND 1 - (embedding <=> %s::vector) >= %s
+                ORDER BY embedding <=> %s::vector
+                LIMIT %s
+            """, (
+                query_embedding,
+                query_embedding,
+                request.min_similarity,
+                query_embedding,
+                request.limit
+            ))
+
+            results = cur.fetchall()
+
+        conn.close()
+
+        # Build search results
+        search_results = []
+        for row in results:
+            search_results.append(SearchResult(
+                episode_id=str(row[0]),
+                content=row[1],
+                similarity_score=float(row[5]),
+                importance_score=float(row[2]),
+                tags=row[3] or [],
+                created_at=row[4]
+            ))
+
+        return SearchResponse(
+            success=True,
+            query=request.query,
+            count=len(search_results),
+            results=search_results,
+            timestamp=datetime.now()
+        )
+
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error performing search: {str(e)}"
         )
 
 @app.get("/stats", tags=["Stats"])
