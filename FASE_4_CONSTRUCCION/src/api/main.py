@@ -16,6 +16,8 @@ from contextlib import asynccontextmanager
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 import time
+import redis
+import json as json_module
 
 # ============================================
 # Configuration
@@ -78,6 +80,22 @@ embeddings_queue_depth = Gauge(
 DB_CONN_STRING = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
 # ============================================
+# Redis Configuration
+# ============================================
+REDIS_HOST = os.getenv("REDIS_HOST", "nexus_redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+REDIS_CACHE_TTL = int(os.getenv("REDIS_CACHE_TTL", "300"))  # 5 minutes
+
+# Read Redis password from Docker Secret
+REDIS_PASSWORD_FILE = os.getenv("REDIS_PASSWORD_FILE", "/run/secrets/redis_password")
+try:
+    with open(REDIS_PASSWORD_FILE, 'r') as f:
+        REDIS_PASSWORD = f.read().strip()
+except FileNotFoundError:
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+
+# ============================================
 # Pydantic Models
 # ============================================
 class MemoryActionRequest(BaseModel):
@@ -96,6 +114,8 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     database: str
+    redis: Optional[str] = None
+    queue_depth: Optional[int] = None
     timestamp: datetime
 
 # ============================================
@@ -103,12 +123,28 @@ class HealthResponse(BaseModel):
 # ============================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    app.state.db_conn = None
+    # Startup - Initialize Redis connection
+    try:
+        app.state.redis_client = redis.Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            db=REDIS_DB,
+            password=REDIS_PASSWORD if REDIS_PASSWORD else None,
+            decode_responses=True,
+            socket_connect_timeout=5
+        )
+        # Test connection
+        app.state.redis_client.ping()
+        print(f"✓ Redis connected: {REDIS_HOST}:{REDIS_PORT}")
+    except Exception as e:
+        print(f"⚠ Redis connection failed: {e}")
+        app.state.redis_client = None
+
     yield
-    # Shutdown
-    if app.state.db_conn:
-        app.state.db_conn.close()
+
+    # Shutdown - Close Redis connection
+    if app.state.redis_client:
+        app.state.redis_client.close()
 
 # ============================================
 # FastAPI App
@@ -165,6 +201,46 @@ def get_db_connection():
             detail=f"Database connection failed: {str(e)}"
         )
 
+def get_redis_client():
+    """Get Redis client from app state"""
+    return app.state.redis_client if hasattr(app.state, 'redis_client') else None
+
+def cache_get(key: str):
+    """Get value from Redis cache"""
+    try:
+        redis_client = get_redis_client()
+        if redis_client:
+            value = redis_client.get(key)
+            if value:
+                return json_module.loads(value)
+    except Exception as e:
+        print(f"Cache get error: {e}")
+    return None
+
+def cache_set(key: str, value: any, ttl: int = REDIS_CACHE_TTL):
+    """Set value in Redis cache with TTL"""
+    try:
+        redis_client = get_redis_client()
+        if redis_client:
+            redis_client.setex(
+                key,
+                ttl,
+                json_module.dumps(value, default=str)
+            )
+    except Exception as e:
+        print(f"Cache set error: {e}")
+
+def cache_invalidate(pattern: str):
+    """Invalidate cache keys matching pattern"""
+    try:
+        redis_client = get_redis_client()
+        if redis_client:
+            keys = redis_client.keys(pattern)
+            if keys:
+                redis_client.delete(*keys)
+    except Exception as e:
+        print(f"Cache invalidate error: {e}")
+
 # ============================================
 # Endpoints
 # ============================================
@@ -181,29 +257,56 @@ async def root():
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
-    """Health check endpoint"""
+    """Advanced health check endpoint - checks PostgreSQL, Redis, and Queue depth"""
+    db_status = "unknown"
+    redis_status = "unknown"
+    queue_depth = None
+    overall_status = "healthy"
+
+    # Check PostgreSQL
     try:
-        # Test database connection
         conn = get_db_connection()
         with conn.cursor() as cur:
             cur.execute("SELECT 1")
             result = cur.fetchone()
+
+            # Get queue depth
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM memory_system.embeddings_queue
+                WHERE state IN ('pending', 'processing')
+            """)
+            queue_depth = cur.fetchone()[0]
+
         conn.close()
-
         db_status = "connected" if result else "disconnected"
-
-        return HealthResponse(
-            status="healthy",
-            version="2.0.0",
-            database=db_status,
-            timestamp=datetime.now()
-        )
     except Exception as e:
-        return HealthResponse(
-            status="unhealthy",
-            version="2.0.0",
-            database=f"error: {str(e)}",
-            timestamp=datetime.now()
+        db_status = f"error: {str(e)[:100]}"
+        overall_status = "unhealthy"
+
+    # Check Redis
+    try:
+        redis_client = get_redis_client()
+        if redis_client:
+            redis_client.ping()
+            redis_status = "connected"
+        else:
+            redis_status = "not_initialized"
+    except Exception as e:
+        redis_status = f"error: {str(e)[:100]}"
+        overall_status = "degraded"  # Redis failure is degraded, not unhealthy
+
+    # Overall status evaluation
+    if queue_depth and queue_depth > 1000:
+        overall_status = "degraded"  # High queue depth is warning
+
+    return HealthResponse(
+        status=overall_status,
+        version="2.0.0",
+        database=db_status,
+        redis=redis_status,
+        queue_depth=queue_depth,
+        timestamp=datetime.now()
         )
 
 @app.post("/memory/action", response_model=MemoryActionResponse, tags=["Memory"])
@@ -246,6 +349,9 @@ async def memory_action(request: MemoryActionRequest):
         conn.commit()
         conn.close()
 
+        # Invalidate episodes cache
+        cache_invalidate("episodes:recent:*")
+
         # Increment Prometheus counter
         episodes_created_total.inc()
 
@@ -264,8 +370,16 @@ async def memory_action(request: MemoryActionRequest):
 
 @app.get("/memory/episodic/recent", tags=["Memory"])
 async def get_recent_episodes(limit: int = 10):
-    """Get recent episodic memories"""
+    """Get recent episodic memories with Redis cache"""
     try:
+        # Try cache first
+        cache_key = f"episodes:recent:{limit}"
+        cached_data = cache_get(cache_key)
+        if cached_data:
+            cached_data["cached"] = True
+            return cached_data
+
+        # Cache miss - query database
         conn = get_db_connection()
 
         with conn.cursor() as cur:
@@ -297,11 +411,17 @@ async def get_recent_episodes(limit: int = 10):
                 "has_embedding": row[5]
             })
 
-        return {
+        response = {
             "success": True,
             "count": len(episodes),
-            "episodes": episodes
+            "episodes": episodes,
+            "cached": False
         }
+
+        # Store in cache
+        cache_set(cache_key, response)
+
+        return response
 
     except Exception as e:
         raise HTTPException(

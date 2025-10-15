@@ -113,6 +113,10 @@ services:
       POSTGRES_DB: nexus_memory
       POSTGRES_USER: nexus_superuser
       POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      REDIS_HOST: nexus_redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      REDIS_CACHE_TTL: 300
       API_PORT: 8003
     ports:
       - "8003:8003"
@@ -123,6 +127,7 @@ services:
       - nexus_network
     secrets:
       - pg_superuser_password
+      - redis_password
     depends_on:
       nexus_postgresql:
         condition: service_healthy
