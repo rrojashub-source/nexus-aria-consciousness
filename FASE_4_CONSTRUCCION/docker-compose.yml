@@ -27,18 +27,19 @@ secrets:
 # ============================================
 services:
   # ============================================
-  # NEXUS POSTGRESQL - pgvector + RBAC
+  # NEXUS POSTGRESQL V2.0.0 - pgvector + RBAC
+  # SEPARADO del cerebro actual (puerto 5437)
   # ============================================
   nexus_postgresql:
     image: pgvector/pgvector:pg16
-    container_name: nexus_postgresql_master
+    container_name: nexus_postgresql_v2
     environment:
       POSTGRES_DB: nexus_memory
       POSTGRES_USER: nexus_superuser
       POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5436:5432"
+      - "5437:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init_scripts:/docker-entrypoint-initdb.d:ro
@@ -284,15 +285,17 @@ volumes:
 # ============================================
 # NOTAS IMPORTANTES:
 # ============================================
-# 1. PostgreSQL puerto: 5436 (evitar conflicto con 5432 existentes)
-# 2. Redis puerto: 6382 (evitar conflicto con 6379 existentes)
-# 3. Secrets en ./secrets/ (NUNCA commitear)
-# 4. Init scripts en ./init_scripts/ (ejecución automática)
-# 5. Health checks configurados con start_period
-# 6. Resource limits para prevenir OOM
-# 7. Volumes nombrados para persistencia
-# 8. Network bridge con subnet específico
+# 1. PostgreSQL V2 puerto: 5437 (SEPARADO de cerebro actual 5436)
+# 2. Database: nexus_memory (mismo nombre pero PostgreSQL SEPARADO por puerto)
+# 3. Redis puerto: 6382 (evitar conflicto con 6379 existentes)
+# 4. Secrets en ./secrets/ (NUNCA commitear)
+# 5. Init scripts en ./init_scripts/ (ejecución automática)
+# 6. Health checks configurados con start_period
+# 7. Resource limits para prevenir OOM
+# 8. Volumes nombrados para persistencia
+# 9. Network bridge con subnet específico
 #
-# DÍA 2-5 FASE 4 - Infrastructure + API + Workers
-# PostgreSQL + Redis + API + Embeddings Worker
+# ARQUITECTURA CORREGIDA DÍA 10:
+# - Cerebro Actual (puerto 8002) → PostgreSQL 5436/nexus_memory
+# - Cerebro V2.0.0 (puerto 8003) → PostgreSQL 5437/nexus_memory_v2
 # ============================================
