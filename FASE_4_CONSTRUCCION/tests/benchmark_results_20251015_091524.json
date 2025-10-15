@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-10-15T09:15:24.477114",
+  "api_url": "http://localhost:8003",
+  "results": {
+    "episode_creation": {
+      "total_time": 2.384934425354004,
+      "throughput": 41.92987401955786,
+      "avg_latency": 23.843343257904053,
+      "p50_latency": 25.219321250915527,
+      "p95_latency": 34.681236743927,
+      "p99_latency": 38.119120597839355,
+      "min_latency": 8.804082870483398,
+      "max_latency": 38.13815116882324
+    },
+    "recent_episodes": {
+      "avg_latency": 14.222838878631592,
+      "p50_latency": 15.421390533447266,
+      "p95_latency": 25.62549114227295,
+      "p99_latency": 28.335208892822266,
+      "cache_hit_rate": 99.0
+    },
+    "semantic_search": {
+      "avg_latency": 65.29809474945068,
+      "p50_latency": 72.87287712097168,
+      "p95_latency": 96.59485816955566,
+      "p99_latency": 204.66007471084595,
+      "avg_results": 2.02
+    },
+    "embeddings_processing": {
+      "total_time": 0.025482892990112305,
+      "creation_time": 10.145425796508789
+    }
+  }
+}

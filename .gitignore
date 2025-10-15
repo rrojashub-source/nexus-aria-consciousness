@@ -1,47 +1,107 @@
-# NEXUS-ARIA Consciousness Repository .gitignore
+# CEREBRO_MASTER_NEXUS_001 - Git Ignore
+# FASE 4 - Construcción Paralela
 
-# Sensitive data
+# ==============================
+# SECRETS - NUNCA COMMITEAR
+# ==============================
+**/secrets/*.txt
 *.key
-*.token
-credentials.json
-secrets/
+*.pem
+*.p12
+*.pfx
 
-# Private memory dumps
-memory_dumps/
-*.db
-*.sqlite
+# ==============================
+# ENVIRONMENT & CONFIG
+# ==============================
+.env
+.env.local
+.env.*.local
+*.local.yml
 
-# System files
-.DS_Store
-Thumbs.db
+# ==============================
+# DOCKER & VOLUMES
+# ==============================
+docker-compose.override.yml
+.docker/
+volumes/
+**/data/
+**/logs/
+
+# ==============================
+# DATABASES & BACKUPS
+# ==============================
+*.sql
+*.dump
+*.rdb
+*.aof
+backups/
+*.backup
+
+# ==============================
+# PYTHON
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+env/
+ENV/
+.venv
+
+# ==============================
+# IDE & EDITORS
+# ==============================
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-
-# Logs
-*.log
-logs/
-
-# Python
-__pycache__/
-*.py[cod]
-*.so
-.Python
-env/
-venv/
-*.egg-info/
-
-# Node
-node_modules/
-npm-debug.log*
-yarn-error.log*
-
-# IDE
-.vscode/
-.idea/
-*.sublime-*
-
-# OS
 .DS_Store
-.AppleDouble
-.LSOverride
+
+# ==============================
+# TESTING & COVERAGE
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# ==============================
+# MONITORING & METRICS
+# ==============================
+prometheus/data/
+grafana/data/
+alertmanager/data/
+
+# ==============================
+# TEMPORARY FILES
+# ==============================
+*.tmp
+*.temp
+*.log
+.cache/
+
+# ==============================
+# KEEP STRUCTURE FOLDERS
+# ==============================
+!.gitkeep
+!**/README.md
+!**/.gitignore

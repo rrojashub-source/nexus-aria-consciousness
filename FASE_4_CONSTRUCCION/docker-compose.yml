@@ -1,0 +1,301 @@
+# ============================================
+# CEREBRO NEXUS V2.0.0 - Docker Compose
+# FASE 4 - DÍA 2: Infrastructure Base
+# ============================================
+# Security Hardened + RBAC + Docker Secrets
+# ============================================
+
+version: '3.9'
+
+# ============================================
+# DOCKER SECRETS - Password Management
+# ============================================
+secrets:
+  pg_superuser_password:
+    file: ./secrets/pg_superuser_password.txt
+  pg_app_password:
+    file: ./secrets/pg_app_password.txt
+  pg_worker_password:
+    file: ./secrets/pg_worker_password.txt
+  pg_readonly_password:
+    file: ./secrets/pg_readonly_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+# ============================================
+# SERVICES
+# ============================================
+services:
+  # ============================================
+  # NEXUS POSTGRESQL V2.0.0 - pgvector + RBAC
+  # SEPARADO del cerebro actual (puerto 5437)
+  # ============================================
+  nexus_postgresql:
+    image: pgvector/pgvector:pg16
+    container_name: nexus_postgresql_v2
+    environment:
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - nexus_network
+    secrets:
+      - pg_superuser_password
+      - pg_app_password
+      - pg_worker_password
+      - pg_readonly_password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_superuser -d nexus_memory"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # NEXUS REDIS - Cache Layer
+  # ============================================
+  nexus_redis:
+    image: redis:7.4.1-alpine
+    container_name: nexus_redis_master
+    command:
+      - sh
+      - -c
+      - 'redis-server --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)" --maxmemory 512mb --maxmemory-policy allkeys-lru'
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nexus_network
+    secrets:
+      - redis_password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "redis-cli -a \"$$(cat /run/secrets/redis_password)\" PING | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================
+  # NEXUS API - FastAPI Application
+  # ============================================
+  nexus_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus_api_master
+    environment:
+      POSTGRES_HOST: nexus_postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      REDIS_HOST: nexus_redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      REDIS_CACHE_TTL: 300
+      API_PORT: 8003
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    networks:
+      - nexus_network
+    secrets:
+      - pg_superuser_password
+      - redis_password
+    depends_on:
+      nexus_postgresql:
+        condition: service_healthy
+      nexus_redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8003 --workers 2
+
+  # ============================================
+  # NEXUS EMBEDDINGS WORKER - Background Processing
+  # ============================================
+  nexus_embeddings_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus_embeddings_worker
+    environment:
+      POSTGRES_HOST: nexus_postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_worker
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_worker_password
+      POLL_INTERVAL: 5
+      BATCH_SIZE: 10
+      MAX_RETRIES: 5
+      EMBEDDINGS_MODEL: sentence-transformers/all-MiniLM-L6-v2
+      METRICS_PORT: 9090
+    ports:
+      - "9090:9090"  # Prometheus metrics
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    networks:
+      - nexus_network
+    secrets:
+      - pg_worker_password
+    depends_on:
+      nexus_postgresql:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: python -m src.workers.embeddings_worker
+
+  # ============================================
+  # PROMETHEUS - Metrics Collection
+  # ============================================
+  nexus_prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: nexus_prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9091:9090"  # Prometheus UI
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    depends_on:
+      - nexus_api
+      - nexus_embeddings_worker
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ============================================
+  # GRAFANA - Visualization Dashboard
+  # ============================================
+  nexus_grafana:
+    image: grafana/grafana:11.3.0
+    container_name: nexus_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: nexus_admin_2025
+      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+    ports:
+      - "3001:3000"  # Grafana UI
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    depends_on:
+      - nexus_prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  nexus_network:
+    driver: bridge
+    name: nexus_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================
+# VOLUMES - Persistent Storage
+# ============================================
+volumes:
+  postgres_data:
+    name: nexus_postgres_data
+  redis_data:
+    name: nexus_redis_data
+  prometheus_data:
+    name: nexus_prometheus_data
+  grafana_data:
+    name: nexus_grafana_data
+
+# ============================================
+# NOTAS IMPORTANTES:
+# ============================================
+# 1. PostgreSQL V2 puerto: 5437 (SEPARADO de cerebro actual 5436)
+# 2. Database: nexus_memory (mismo nombre pero PostgreSQL SEPARADO por puerto)
+# 3. Redis puerto: 6382 (evitar conflicto con 6379 existentes)
+# 4. Secrets en ./secrets/ (NUNCA commitear)
+# 5. Init scripts en ./init_scripts/ (ejecución automática)
+# 6. Health checks configurados con start_period
+# 7. Resource limits para prevenir OOM
+# 8. Volumes nombrados para persistencia
+# 9. Network bridge con subnet específico
+#
+# ARQUITECTURA CORREGIDA DÍA 10:
+# - Cerebro Actual (puerto 8002) → PostgreSQL 5436/nexus_memory
+# - Cerebro V2.0.0 (puerto 8003) → PostgreSQL 5437/nexus_memory_v2
+# ============================================
