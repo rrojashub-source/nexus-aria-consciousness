@@ -122,6 +122,7 @@ class MemoryActionResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     version: str
+    agent_id: str
     database: str
     redis: Optional[str] = None
     queue_depth: Optional[int] = None
@@ -368,6 +369,7 @@ async def health_check():
     return HealthResponse(
         status=overall_status,
         version="2.0.0",
+        agent_id="nexus",
         database=db_status,
         redis=redis_status,
         queue_depth=queue_depth,
@@ -384,10 +386,19 @@ async def memory_action(request: MemoryActionRequest):
         conn = get_db_connection()
 
         # Prepare content from action_details
-        content = f"{request.action_type}: {request.action_details}"
+        # FIXED: Use actual content field if exists, otherwise serialize full details
+        if "content" in request.action_details:
+            # Use explicit content field
+            content = request.action_details["content"]
+        elif request.action_details:
+            # Serialize full action_details as JSON string for embeddings
+            content = json_module.dumps(request.action_details, indent=2, default=str)
+        else:
+            # Fallback to action_type only
+            content = request.action_type
 
         # Calculate importance_score (default 0.5, can be customized)
-        importance_score = request.action_details.get("importance_score", 0.5)
+        importance_score = request.action_details.get("importance_score", 0.5) if request.action_details else 0.5
 
         # Insert into episodic memory
         with conn.cursor() as cur:
@@ -596,6 +607,7 @@ async def get_stats():
 
         return {
             "success": True,
+            "agent_id": "nexus",
             "stats": {
                 "total_episodes": total_episodes,
                 "episodes_with_embeddings": total_with_embeddings,
