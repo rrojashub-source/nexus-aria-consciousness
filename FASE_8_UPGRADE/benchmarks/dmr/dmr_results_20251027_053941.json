@@ -1,0 +1,309 @@
+{
+  "total_queries": 50,
+  "correct": 9,
+  "incorrect": 41,
+  "accuracy": 18.0,
+  "timestamp": "2025-10-27T05:39:41.334176",
+  "details": [
+    {
+      "query": "What milestone was reached for project fase_8_upgrade in DMR test?",
+      "expected": "deployed",
+      "retrieved": "DMR_TEST project_milestone: Project fase_8_upgrade milestone documented reached",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "delete_item",
+      "retrieved": "DMR_TEST user_interaction: User ricardo performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project fase_8_upgrade in DMR test?",
+      "expected": "started",
+      "retrieved": "DMR_TEST project_milestone: Project fase_8_upgrade milestone documented reached",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "jwt_secret",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "DMR_TEST user_interaction: User diego_alcantara performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What action did user test_user perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "DMR_TEST user_interaction: User test_user performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "logout",
+      "retrieved": "DMR_TEST user_interaction: User diego_alcantara performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "database_timeout",
+      "retrieved": "DMR_TEST error_log: Error authentication_failed encountered by user admin",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "DMR_TEST error_log: Error authentication_failed encountered by user admin",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "connection_refused",
+      "retrieved": "DMR_TEST error_log: Error authentication_failed encountered by user admin",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service nexus_api in DMR test?",
+      "expected": "crashed",
+      "retrieved": "DMR_TEST technical_event: Service nexus_api started at 2025-09-27 10:19:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "documented",
+      "retrieved": "DMR_TEST project_milestone: Project biblioteca_moi milestone tested reached",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service redis in DMR test?",
+      "expected": "stopped",
+      "retrieved": "DMR_TEST technical_event: Service redis started at 2025-09-27 20:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "cors_origin",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "cors_origin",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What action did user arlae_ortiz perform in DMR test?",
+      "expected": "delete_item",
+      "retrieved": "DMR_TEST user_interaction: User arlae_ortiz performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service redis in DMR test?",
+      "expected": "restarted",
+      "retrieved": "DMR_TEST technical_event: Service redis started at 2025-09-27 20:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "jwt_secret",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What error did user ricardo encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "DMR_TEST user_interaction: User ricardo performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "crashed",
+      "retrieved": "DMR_TEST technical_event: Service embeddings_worker started at 2025-09-27 16:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "login",
+      "retrieved": "DMR_TEST user_interaction: User ricardo performed login successfully",
+      "correct": true
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "port",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service grafana in DMR test?",
+      "expected": "upgraded",
+      "retrieved": "DMR_TEST technical_event: Service grafana restarted at 2025-09-27 08:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "tested",
+      "retrieved": "DMR_TEST project_milestone: Project central_power_solutions milestone tested reached",
+      "correct": true
+    },
+    {
+      "query": "What milestone was reached for project nexus_cerebro in DMR test?",
+      "expected": "tested",
+      "retrieved": "DMR_TEST project_milestone: Project nexus_cerebro milestone tested reached",
+      "correct": true
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "deployed",
+      "retrieved": "DMR_TEST project_milestone: Project central_power_solutions milestone tested reached",
+      "correct": false
+    },
+    {
+      "query": "What action did user admin perform in DMR test?",
+      "expected": "login",
+      "retrieved": "DMR_TEST user_interaction: User admin performed login successfully",
+      "correct": true
+    },
+    {
+      "query": "What error did user diego_alcantara encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "DMR_TEST error_log: Error api_error encountered by user diego_alcantara",
+      "correct": true
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "tested",
+      "retrieved": "DMR_TEST project_milestone: Project biblioteca_moi milestone tested reached",
+      "correct": true
+    },
+    {
+      "query": "What event occurred with service grafana in DMR test?",
+      "expected": "crashed",
+      "retrieved": "DMR_TEST technical_event: Service grafana restarted at 2025-09-27 08:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "started",
+      "retrieved": "DMR_TEST technical_event: Service embeddings_worker started at 2025-09-27 16:09:03.234720",
+      "correct": true
+    },
+    {
+      "query": "What milestone was reached for project nexus_cerebro in DMR test?",
+      "expected": "started",
+      "retrieved": "DMR_TEST project_milestone: Project nexus_cerebro milestone tested reached",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "DMR_TEST user_interaction: User ricardo performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What action did user admin perform in DMR test?",
+      "expected": "login",
+      "retrieved": "DMR_TEST user_interaction: User admin performed login successfully",
+      "correct": true
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "delete_item",
+      "retrieved": "DMR_TEST user_interaction: User diego_alcantara performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "started",
+      "retrieved": "DMR_TEST project_milestone: Project central_power_solutions milestone tested reached",
+      "correct": false
+    },
+    {
+      "query": "What action did user arlae_ortiz perform in DMR test?",
+      "expected": "update_settings",
+      "retrieved": "DMR_TEST user_interaction: User arlae_ortiz performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What action did user admin perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "DMR_TEST user_interaction: User admin performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What error did user diego_alcantara encounter in DMR test?",
+      "expected": "connection_refused",
+      "retrieved": "DMR_TEST error_log: Error api_error encountered by user diego_alcantara",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "stopped",
+      "retrieved": "DMR_TEST technical_event: Service postgresql started at 2025-09-27 10:59:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What error did user arlae_ortiz encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "DMR_TEST user_interaction: User arlae_ortiz performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "DMR_TEST error_log: Error authentication_failed encountered by user admin",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service grafana in DMR test?",
+      "expected": "stopped",
+      "retrieved": "DMR_TEST technical_event: Service grafana restarted at 2025-09-27 08:09:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "ssl_enabled",
+      "retrieved": "DMR_TEST config_change: Configuration host changed from old_value_39 to new_value_39",
+      "correct": false
+    },
+    {
+      "query": "What error did user test_user encounter in DMR test?",
+      "expected": "database_timeout",
+      "retrieved": "DMR_TEST error_log: Error authentication_failed encountered by user test_user",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "crashed",
+      "retrieved": "DMR_TEST technical_event: Service postgresql started at 2025-09-27 10:59:03.234720",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project nexus_cerebro in DMR test?",
+      "expected": "completed",
+      "retrieved": "DMR_TEST project_milestone: Project nexus_cerebro milestone tested reached",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "logout",
+      "retrieved": "DMR_TEST user_interaction: User ricardo performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What action did user arlae_ortiz perform in DMR test?",
+      "expected": "logout",
+      "retrieved": "DMR_TEST user_interaction: User arlae_ortiz performed login successfully",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service nexus_api in DMR test?",
+      "expected": "started",
+      "retrieved": "DMR_TEST technical_event: Service nexus_api started at 2025-09-27 10:19:03.234720",
+      "correct": true
+    }
+  ]
+}

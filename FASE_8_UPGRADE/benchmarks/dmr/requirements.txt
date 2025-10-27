@@ -1,0 +1,11 @@
+# DMR Benchmark Dependencies
+
+# Database
+psycopg2-binary==2.9.9
+
+# HTTP requests
+requests==2.31.0
+
+# JSON handling (built-in)
+# datetime (built-in)
+# random (built-in)

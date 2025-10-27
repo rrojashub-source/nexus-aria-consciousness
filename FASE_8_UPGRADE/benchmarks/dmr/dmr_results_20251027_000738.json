@@ -1,0 +1,309 @@
+{
+  "total_queries": 50,
+  "correct": 0,
+  "incorrect": 50,
+  "accuracy": 0.0,
+  "timestamp": "2025-10-27T00:07:38.829493",
+  "details": [
+    {
+      "query": "What event occurred with service nexus_api in DMR test?",
+      "expected": "crashed",
+      "retrieved": "test_action: {'test_name': 'system_validation', 'purpose': 'testing nexus-memory tools'}",
+      "correct": false
+    },
+    {
+      "query": "What error did user ricardo encounter in DMR test?",
+      "expected": "connection_refused",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user test_user encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "completed",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "stopped",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "deployed",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "stopped",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "restarted",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "cors_origin",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user test_user perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "restarted",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user arlae_ortiz encounter in DMR test?",
+      "expected": "database_timeout",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user test_user encounter in DMR test?",
+      "expected": "connection_refused",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service nexus_api in DMR test?",
+      "expected": "stopped",
+      "retrieved": "test_action: {'test_name': 'system_validation', 'purpose': 'testing nexus-memory tools'}",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "crashed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "started",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "deployed",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "documented",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project nexus_cerebro in DMR test?",
+      "expected": "tested",
+      "retrieved": "PENDIENTES ACTIVOS - NEXUS\nActualizado: 2025-10-10 22:25\n\n## Pendientes Activos\n\n1. MCP ARIA FASE 2 - Incluir consciousness functions en claude.ai\n   Project: Cerebro_ARIA\n   Estimado: 2h\n   Status: P",
+      "correct": false
+    },
+    {
+      "query": "What action did user arlae_ortiz perform in DMR test?",
+      "expected": "logout",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "stopped",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service postgresql in DMR test?",
+      "expected": "crashed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service redis in DMR test?",
+      "expected": "restarted",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user ricardo encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user test_user encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user test_user perform in DMR test?",
+      "expected": "login",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "login",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user arlae_ortiz encounter in DMR test?",
+      "expected": "memory_full",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user ricardo perform in DMR test?",
+      "expected": "create_project",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "crashed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "completed",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What configuration was changed in DMR test?",
+      "expected": "ssl_enabled",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "started",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "documented",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service grafana in DMR test?",
+      "expected": "upgraded",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user admin encounter in DMR test?",
+      "expected": "authentication_failed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user arlae_ortiz perform in DMR test?",
+      "expected": "login",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user ricardo encounter in DMR test?",
+      "expected": "authentication_failed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user ricardo encounter in DMR test?",
+      "expected": "authentication_failed",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user test_user encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What action did user diego_alcantara perform in DMR test?",
+      "expected": "update_settings",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project biblioteca_moi in DMR test?",
+      "expected": "deployed",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project central_power_solutions in DMR test?",
+      "expected": "tested",
+      "retrieved": "",
+      "correct": false
+    },
+    {
+      "query": "What action did user test_user perform in DMR test?",
+      "expected": "logout",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What event occurred with service embeddings_worker in DMR test?",
+      "expected": "started",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What error did user arlae_ortiz encounter in DMR test?",
+      "expected": "api_error",
+      "retrieved": "dmr_test",
+      "correct": false
+    },
+    {
+      "query": "What milestone was reached for project nexus_cerebro in DMR test?",
+      "expected": "tested",
+      "retrieved": "PENDIENTES ACTIVOS - NEXUS\nActualizado: 2025-10-10 22:25\n\n## Pendientes Activos\n\n1. MCP ARIA FASE 2 - Incluir consciousness functions en claude.ai\n   Project: Cerebro_ARIA\n   Estimado: 2h\n   Status: P",
+      "correct": false
+    }
+  ]
+}

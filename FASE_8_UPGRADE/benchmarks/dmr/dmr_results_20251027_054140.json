@@ -1,0 +1,309 @@
+{
+  "total_queries": 50,
+  "correct": 41,
+  "incorrect": 9,
+  "accuracy": 82.0,
+  "timestamp": "2025-10-27T05:41:40.611252",
+  "details": [
+    {
+      "query": "What action did user0 perform in DMR test?",
+      "expected": "action0",
+      "retrieved": "DMR_TEST user_interaction: User user0 performed action0 successfully at timestamp 0",
+      "correct": true
+    },
+    {
+      "query": "What event did service1 execute in DMR test?",
+      "expected": "event1",
+      "retrieved": "DMR_TEST technical_event: Service service1 executed event1 at 2025-09-27 05:51:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project2 reach in DMR test?",
+      "expected": "milestone2",
+      "retrieved": "DMR_TEST project_milestone: Project project2 reached milestone2 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error3",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config4 in DMR test?",
+      "expected": "config4",
+      "retrieved": "DMR_TEST config_change: Configuration config4 changed from oldval4 to newval4",
+      "correct": true
+    },
+    {
+      "query": "What action did user5 perform in DMR test?",
+      "expected": "action5",
+      "retrieved": "DMR_TEST user_interaction: User user5 performed action5 successfully at timestamp 5",
+      "correct": true
+    },
+    {
+      "query": "What event did service6 execute in DMR test?",
+      "expected": "event6",
+      "retrieved": "DMR_TEST technical_event: Service service6 executed event6 at 2025-09-27 06:41:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project7 reach in DMR test?",
+      "expected": "milestone7",
+      "retrieved": "DMR_TEST project_milestone: Project project7 reached milestone7 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error8",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config9 in DMR test?",
+      "expected": "config9",
+      "retrieved": "DMR_TEST config_change: Configuration config9 changed from oldval9 to newval9",
+      "correct": true
+    },
+    {
+      "query": "What action did user10 perform in DMR test?",
+      "expected": "action10",
+      "retrieved": "DMR_TEST user_interaction: User user10 performed action10 successfully at timestamp 10",
+      "correct": true
+    },
+    {
+      "query": "What event did service11 execute in DMR test?",
+      "expected": "event11",
+      "retrieved": "DMR_TEST technical_event: Service service11 executed event11 at 2025-09-27 07:31:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project12 reach in DMR test?",
+      "expected": "milestone12",
+      "retrieved": "DMR_TEST project_milestone: Project project12 reached milestone12 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error13",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config14 in DMR test?",
+      "expected": "config14",
+      "retrieved": "DMR_TEST config_change: Configuration config14 changed from oldval14 to newval14",
+      "correct": true
+    },
+    {
+      "query": "What action did user15 perform in DMR test?",
+      "expected": "action15",
+      "retrieved": "DMR_TEST user_interaction: User user15 performed action15 successfully at timestamp 15",
+      "correct": true
+    },
+    {
+      "query": "What event did service16 execute in DMR test?",
+      "expected": "event16",
+      "retrieved": "DMR_TEST technical_event: Service service16 executed event16 at 2025-09-27 08:21:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project17 reach in DMR test?",
+      "expected": "milestone17",
+      "retrieved": "DMR_TEST project_milestone: Project project17 reached milestone17 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error18",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": true
+    },
+    {
+      "query": "What configuration was config19 in DMR test?",
+      "expected": "config19",
+      "retrieved": "DMR_TEST config_change: Configuration config19 changed from oldval19 to newval19",
+      "correct": true
+    },
+    {
+      "query": "What action did user20 perform in DMR test?",
+      "expected": "action20",
+      "retrieved": "DMR_TEST user_interaction: User user20 performed action20 successfully at timestamp 20",
+      "correct": true
+    },
+    {
+      "query": "What event did service21 execute in DMR test?",
+      "expected": "event21",
+      "retrieved": "DMR_TEST technical_event: Service service21 executed event21 at 2025-09-27 09:11:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project22 reach in DMR test?",
+      "expected": "milestone22",
+      "retrieved": "DMR_TEST project_milestone: Project project22 reached milestone22 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error23",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config24 in DMR test?",
+      "expected": "config24",
+      "retrieved": "DMR_TEST config_change: Configuration config24 changed from oldval24 to newval24",
+      "correct": true
+    },
+    {
+      "query": "What action did user25 perform in DMR test?",
+      "expected": "action25",
+      "retrieved": "DMR_TEST user_interaction: User user25 performed action25 successfully at timestamp 25",
+      "correct": true
+    },
+    {
+      "query": "What event did service26 execute in DMR test?",
+      "expected": "event26",
+      "retrieved": "DMR_TEST technical_event: Service service26 executed event26 at 2025-09-27 10:01:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project27 reach in DMR test?",
+      "expected": "milestone27",
+      "retrieved": "DMR_TEST project_milestone: Project project27 reached milestone27 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error28",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config29 in DMR test?",
+      "expected": "config29",
+      "retrieved": "DMR_TEST config_change: Configuration config29 changed from oldval29 to newval29",
+      "correct": true
+    },
+    {
+      "query": "What action did user30 perform in DMR test?",
+      "expected": "action30",
+      "retrieved": "DMR_TEST user_interaction: User user30 performed action30 successfully at timestamp 30",
+      "correct": true
+    },
+    {
+      "query": "What event did service31 execute in DMR test?",
+      "expected": "event31",
+      "retrieved": "DMR_TEST technical_event: Service service31 executed event31 at 2025-09-27 10:51:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project32 reach in DMR test?",
+      "expected": "milestone32",
+      "retrieved": "DMR_TEST project_milestone: Project project32 reached milestone32 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error33",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config34 in DMR test?",
+      "expected": "config34",
+      "retrieved": "DMR_TEST config_change: Configuration config34 changed from oldval34 to newval34",
+      "correct": true
+    },
+    {
+      "query": "What action did user35 perform in DMR test?",
+      "expected": "action35",
+      "retrieved": "DMR_TEST user_interaction: User user35 performed action35 successfully at timestamp 35",
+      "correct": true
+    },
+    {
+      "query": "What event did service36 execute in DMR test?",
+      "expected": "event36",
+      "retrieved": "DMR_TEST technical_event: Service service36 executed event36 at 2025-09-27 11:41:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project37 reach in DMR test?",
+      "expected": "milestone37",
+      "retrieved": "DMR_TEST project_milestone: Project project37 reached milestone37 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error38",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config39 in DMR test?",
+      "expected": "config39",
+      "retrieved": "DMR_TEST config_change: Configuration config39 changed from oldval39 to newval39",
+      "correct": true
+    },
+    {
+      "query": "What action did user40 perform in DMR test?",
+      "expected": "action40",
+      "retrieved": "DMR_TEST user_interaction: User user40 performed action40 successfully at timestamp 40",
+      "correct": true
+    },
+    {
+      "query": "What event did service41 execute in DMR test?",
+      "expected": "event41",
+      "retrieved": "DMR_TEST technical_event: Service service41 executed event41 at 2025-09-27 12:31:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project42 reach in DMR test?",
+      "expected": "milestone42",
+      "retrieved": "DMR_TEST project_milestone: Project project42 reached milestone42 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error43",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config44 in DMR test?",
+      "expected": "config44",
+      "retrieved": "DMR_TEST config_change: Configuration config44 changed from oldval44 to newval44",
+      "correct": true
+    },
+    {
+      "query": "What action did user45 perform in DMR test?",
+      "expected": "action45",
+      "retrieved": "DMR_TEST user_interaction: User user45 performed action45 successfully at timestamp 45",
+      "correct": true
+    },
+    {
+      "query": "What event did service46 execute in DMR test?",
+      "expected": "event46",
+      "retrieved": "DMR_TEST technical_event: Service service46 executed event46 at 2025-09-27 13:21:15.932762",
+      "correct": true
+    },
+    {
+      "query": "What milestone did project47 reach in DMR test?",
+      "expected": "milestone47",
+      "retrieved": "DMR_TEST project_milestone: Project project47 reached milestone47 completion marker",
+      "correct": true
+    },
+    {
+      "query": "What error did during encounter in DMR test?",
+      "expected": "error48",
+      "retrieved": "DMR_TEST error_log: Error error18 encountered by user18_err during operation",
+      "correct": false
+    },
+    {
+      "query": "What configuration was config49 in DMR test?",
+      "expected": "config49",
+      "retrieved": "DMR_TEST config_change: Configuration config49 changed from oldval49 to newval49",
+      "correct": true
+    }
+  ]
+}
