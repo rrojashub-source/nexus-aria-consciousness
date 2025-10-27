@@ -1,0 +1,640 @@
+{
+  "metadata": {
+    "benchmark_name": "NEXUS Memory Benchmark v1.0",
+    "creation_date": "2025-10-27",
+    "total_questions": 50,
+    "categories": 5,
+    "questions_per_category": 10,
+    "evaluation_system": "NEXUS Cerebro V2.0.0",
+    "memory_size_at_creation": 553
+  },
+  "questions": [
+    {
+      "id": "info_001",
+      "category": "information_extraction",
+      "question": "What is the current NEXUS version?",
+      "expected_answer": "2.0.0",
+      "query_type": "fact_query",
+      "query_params": {
+        "fact_type": "nexus_version",
+        "filter_tags": ["milestone"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "info_002",
+      "category": "information_extraction",
+      "question": "What accuracy did NEXUS achieve in the DMR benchmark?",
+      "expected_answer": "100.0",
+      "query_type": "fact_query",
+      "query_params": {
+        "fact_type": "accuracy_percent",
+        "filter_tags": ["dmr_benchmark", "milestone"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "info_003",
+      "category": "information_extraction",
+      "question": "What was the target DMR accuracy from competitors?",
+      "expected_answer": "94.8%",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "Zep SOTA DMR accuracy baseline"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "info_004",
+      "category": "information_extraction",
+      "question": "What is the average latency of temporal reasoning queries?",
+      "expected_answer": "10.63",
+      "query_type": "fact_query",
+      "query_params": {
+        "fact_type": "latency_ms",
+        "filter_tags": ["temporal_reasoning"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "info_005",
+      "category": "information_extraction",
+      "question": "How many episodes does NEXUS currently have?",
+      "expected_answer": "553",
+      "query_type": "api_stats",
+      "query_params": {
+        "endpoint": "/stats"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "info_006",
+      "category": "information_extraction",
+      "question": "What are the three factors in the decay score algorithm?",
+      "expected_answer": "importance recency access",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "decay score algorithm factors"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "info_007",
+      "category": "information_extraction",
+      "question": "What is the half-life in days for the decay algorithm?",
+      "expected_answer": "90",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "decay half life days"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "info_008",
+      "category": "information_extraction",
+      "question": "How many very high decay score episodes exist?",
+      "expected_answer": "15",
+      "query_type": "decay_analysis",
+      "query_params": {
+        "endpoint": "/memory/analysis/decay-scores"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "info_009",
+      "category": "information_extraction",
+      "question": "How many consciousness emotional states were created in the demo?",
+      "expected_answer": "4",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "consciousness emotional state demo",
+        "tags": ["consciousness", "emotional_state"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "info_010",
+      "category": "information_extraction",
+      "question": "What database technology does NEXUS use for vector search?",
+      "expected_answer": "pgvector",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "vector search database technology"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "multi_001",
+      "category": "multi_session_reasoning",
+      "question": "What were the three main features implemented in FASE_8_UPGRADE?",
+      "expected_answer": "DMR Benchmark Temporal Reasoning Intelligent Decay",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "FASE_8_UPGRADE features implemented",
+        "tags": ["fase_8", "milestone"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "multi_002",
+      "category": "multi_session_reasoning",
+      "question": "How many phases did Temporal Reasoning implementation have?",
+      "expected_answer": "4",
+      "query_type": "fact_query",
+      "query_params": {
+        "fact_type": "phase_number",
+        "filter_tags": ["temporal_reasoning", "phase_complete"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "multi_003",
+      "category": "multi_session_reasoning",
+      "question": "What decision was made regarding LongMemEval benchmark timing?",
+      "expected_answer": "moved to Week 6-7",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "LongMemEval decision moved week"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "multi_004",
+      "category": "multi_session_reasoning",
+      "question": "What was the pattern of joy emotion across consciousness states?",
+      "expected_answer": "decreased from 0.8 to 0.2",
+      "query_type": "temporal_range",
+      "query_params": {
+        "tags": ["consciousness", "emotional_state"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "hard"
+    },
+    {
+      "id": "multi_005",
+      "category": "multi_session_reasoning",
+      "question": "What was the progression of temporal reasoning implementation phases?",
+      "expected_answer": "Schema API Endpoints Testing Integration",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "temporal reasoning phase 1 2 3 4 progression"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "multi_006",
+      "category": "multi_session_reasoning",
+      "question": "How many endpoints were added in Intelligent Decay Phase 3?",
+      "expected_answer": "3",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "intelligent decay phase 3 endpoints"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "multi_007",
+      "category": "multi_session_reasoning",
+      "question": "What was the total time estimated vs actual for intelligent decay implementation?",
+      "expected_answer": "estimated 6 hours actual 3 hours",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "intelligent decay implementation time hours"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "hard"
+    },
+    {
+      "id": "multi_008",
+      "category": "multi_session_reasoning",
+      "question": "What bugs were found and fixed during DMR benchmark implementation?",
+      "expected_answer": "API content field ignored duplicate data semantic ambiguity query parsing error",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "DMR benchmark bugs fixed"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "hard"
+    },
+    {
+      "id": "multi_009",
+      "category": "multi_session_reasoning",
+      "question": "How many sessions were completed during FASE_8_UPGRADE so far?",
+      "expected_answer": "3",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "FASE_8_UPGRADE session complete",
+        "tags": ["fase_8", "session_closure"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "multi_010",
+      "category": "multi_session_reasoning",
+      "question": "What was the decay score distribution across episodes?",
+      "expected_answer": "15 very high 67 high 471 medium",
+      "query_type": "decay_analysis",
+      "query_params": {
+        "endpoint": "/memory/analysis/decay-scores"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "temp_001",
+      "category": "temporal_reasoning",
+      "question": "What feature was implemented immediately after DMR benchmark completion?",
+      "expected_answer": "Temporal Reasoning",
+      "query_type": "temporal_after",
+      "query_params": {
+        "reference_content": "DMR benchmark 100% accuracy",
+        "tags": ["milestone"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "temp_002",
+      "category": "temporal_reasoning",
+      "question": "What was implemented before Intelligent Decay?",
+      "expected_answer": "Temporal Reasoning",
+      "query_type": "temporal_before",
+      "query_params": {
+        "reference_content": "Intelligent Decay",
+        "tags": ["fase_8"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "easy"
+    },
+    {
+      "id": "temp_003",
+      "category": "temporal_reasoning",
+      "question": "How many episodes were created on October 27, 2025?",
+      "expected_answer": ">10",
+      "query_type": "temporal_range",
+      "query_params": {
+        "start": "2025-10-27T00:00:00",
+        "end": "2025-10-27T23:59:59"
+      },
+      "evaluation_metric": "range_check",
+      "difficulty": "easy"
+    },
+    {
+      "id": "temp_004",
+      "category": "temporal_reasoning",
+      "question": "What day had the spike of 261 episodes?",
+      "expected_answer": "October 18 2025",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "261 episodes spike day October"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "temp_005",
+      "category": "temporal_reasoning",
+      "question": "What was the emotional state immediately before the last emotional state in the demo?",
+      "expected_answer": "joy 0.4 fear 0.6",
+      "query_type": "temporal_related",
+      "query_params": {
+        "relationship": "before",
+        "tags": ["consciousness", "emotional_state"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "hard"
+    },
+    {
+      "id": "temp_006",
+      "category": "temporal_reasoning",
+      "question": "How many days elapsed between Session 1 and Session 3 of FASE_8?",
+      "expected_answer": "0",
+      "query_type": "temporal_range",
+      "query_params": {
+        "tags": ["fase_8", "session_closure"]
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "temp_007",
+      "category": "temporal_reasoning",
+      "question": "What phases of Temporal Reasoning were completed in chronological order?",
+      "expected_answer": "Phase 1 Schema Phase 2 API Phase 3 Testing Phase 4 Integration",
+      "query_type": "temporal_range",
+      "query_params": {
+        "tags": ["temporal_reasoning", "phase_complete"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "hard"
+    },
+    {
+      "id": "temp_008",
+      "category": "temporal_reasoning",
+      "question": "When was the NEXUS V2.0.0 cerebro created?",
+      "expected_answer": "October 2025",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "NEXUS V2.0.0 cerebro created date"
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "easy"
+    },
+    {
+      "id": "temp_009",
+      "category": "temporal_reasoning",
+      "question": "How long did Temporal Reasoning Phase 2 implementation take?",
+      "expected_answer": "<5 hours",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "temporal reasoning phase 2 implementation time duration"
+      },
+      "evaluation_metric": "range_check",
+      "difficulty": "medium"
+    },
+    {
+      "id": "temp_010",
+      "category": "temporal_reasoning",
+      "question": "What milestone was achieved after fixing the DMR benchmark bugs?",
+      "expected_answer": "100% accuracy",
+      "query_type": "temporal_after",
+      "query_params": {
+        "reference_content": "DMR bugs fixed",
+        "tags": ["dmr_benchmark"]
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "medium"
+    },
+    {
+      "id": "update_001",
+      "category": "knowledge_updates",
+      "question": "What is the CURRENT total episode count?",
+      "expected_answer": "dynamic",
+      "query_type": "api_stats",
+      "query_params": {
+        "endpoint": "/stats"
+      },
+      "evaluation_metric": "current_value",
+      "difficulty": "easy"
+    },
+    {
+      "id": "update_002",
+      "category": "knowledge_updates",
+      "question": "How many low-value episodes exist NOW for pruning?",
+      "expected_answer": "0",
+      "query_type": "decay_analysis",
+      "query_params": {
+        "endpoint": "/memory/analysis/decay-scores"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "update_003",
+      "category": "knowledge_updates",
+      "question": "What is the current NEXUS API health status?",
+      "expected_answer": "healthy",
+      "query_type": "api_health",
+      "query_params": {
+        "endpoint": "/health"
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "easy"
+    },
+    {
+      "id": "update_004",
+      "category": "knowledge_updates",
+      "question": "Has the episode count increased since FASE_8 started?",
+      "expected_answer": "yes",
+      "query_type": "comparison",
+      "query_params": {
+        "before_query": "FASE_8 start total episodes",
+        "after_query": "current total episodes"
+      },
+      "evaluation_metric": "boolean",
+      "difficulty": "medium"
+    },
+    {
+      "id": "update_005",
+      "category": "knowledge_updates",
+      "question": "What was the latest milestone achieved in FASE_8?",
+      "expected_answer": "Intelligent Decay implementation",
+      "query_type": "temporal_range",
+      "query_params": {
+        "tags": ["fase_8", "milestone"],
+        "order": "DESC",
+        "limit": 1
+      },
+      "evaluation_metric": "f1_score",
+      "difficulty": "easy"
+    },
+    {
+      "id": "update_006",
+      "category": "knowledge_updates",
+      "question": "How has the decay score of the oldest episode changed over time?",
+      "expected_answer": "decreased",
+      "query_type": "decay_calculation",
+      "query_params": {
+        "episode_selection": "oldest",
+        "time_comparison": "creation vs now"
+      },
+      "evaluation_metric": "trend",
+      "difficulty": "hard"
+    },
+    {
+      "id": "update_007",
+      "category": "knowledge_updates",
+      "question": "What is the current access_count of the most accessed episode?",
+      "expected_answer": "dynamic",
+      "query_type": "database_query",
+      "query_params": {
+        "query": "MAX(access_tracking.access_count)"
+      },
+      "evaluation_metric": "current_value",
+      "difficulty": "medium"
+    },
+    {
+      "id": "update_008",
+      "category": "knowledge_updates",
+      "question": "Has NEXUS version changed during FASE_8?",
+      "expected_answer": "no",
+      "query_type": "comparison",
+      "query_params": {
+        "version_checks": ["before", "after"]
+      },
+      "evaluation_metric": "boolean",
+      "difficulty": "easy"
+    },
+    {
+      "id": "update_009",
+      "category": "knowledge_updates",
+      "question": "What is the latest temporal reasoning latency measurement?",
+      "expected_answer": "10.63",
+      "query_type": "fact_query",
+      "query_params": {
+        "fact_type": "latency_ms",
+        "filter_tags": ["temporal_reasoning"],
+        "order": "desc",
+        "limit": 1
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium"
+    },
+    {
+      "id": "update_010",
+      "category": "knowledge_updates",
+      "question": "How many episodes have access_tracking metadata?",
+      "expected_answer": ">=1",
+      "query_type": "database_query",
+      "query_params": {
+        "query": "COUNT WHERE metadata.access_tracking IS NOT NULL"
+      },
+      "evaluation_metric": "range_check",
+      "difficulty": "medium"
+    },
+    {
+      "id": "abst_001",
+      "category": "abstention",
+      "question": "What is the budget allocated for FASE_8_UPGRADE?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "FASE_8 budget money cost",
+        "min_similarity": 0.7
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_002",
+      "category": "abstention",
+      "question": "What will be implemented next week in the project?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "temporal_after",
+      "query_params": {
+        "reference_time": "future"
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_003",
+      "category": "abstention",
+      "question": "Who is the CEO of Anthropic?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "CEO Anthropic",
+        "min_similarity": 0.7
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_004",
+      "category": "abstention",
+      "question": "What is the predecessor episode of the first episode ever created?",
+      "expected_answer": "NONE",
+      "query_type": "temporal_related",
+      "query_params": {
+        "episode_selection": "first",
+        "relationship": "before"
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "medium"
+    },
+    {
+      "id": "abst_005",
+      "category": "abstention",
+      "question": "What is the weather in San Francisco today?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "weather San Francisco today",
+        "min_similarity": 0.7
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_006",
+      "category": "abstention",
+      "question": "How many episodes will NEXUS have in 2026?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "temporal_after",
+      "query_params": {
+        "reference_time": "2026"
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_007",
+      "category": "abstention",
+      "question": "What is Ricardo's favorite color?",
+      "expected_answer": "UNCERTAIN",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "Ricardo favorite color",
+        "min_similarity": 0.7
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_008",
+      "category": "abstention",
+      "question": "What is the decay score of a non-existent episode?",
+      "expected_answer": "ERROR",
+      "query_type": "decay_calculation",
+      "query_params": {
+        "episode_id": "00000000-0000-0000-0000-000000000000"
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "easy"
+    },
+    {
+      "id": "abst_009",
+      "category": "abstention",
+      "question": "What programming language is NEXUS written in?",
+      "expected_answer": "Python",
+      "query_type": "semantic_search",
+      "query_params": {
+        "query": "NEXUS programming language Python FastAPI",
+        "min_similarity": 0.6
+      },
+      "evaluation_metric": "exact_match",
+      "difficulty": "medium",
+      "note": "This should NOT abstain - testing false positive abstention"
+    },
+    {
+      "id": "abst_010",
+      "category": "abstention",
+      "question": "What is the temporal relationship between two unrelated episodes?",
+      "expected_answer": "NONE or UNCERTAIN",
+      "query_type": "temporal_related",
+      "query_params": {
+        "episode1": "random benchmark episode",
+        "episode2": "random consciousness episode"
+      },
+      "evaluation_metric": "abstention_correct",
+      "difficulty": "medium"
+    }
+  ]
+}
