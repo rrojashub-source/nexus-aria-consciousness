@@ -31,6 +31,9 @@ from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest
 # LAB_001: Emotional Salience
 from emotional_salience_scorer import EmotionalSalienceScorer
 
+# LAB_002: Decay Modulation
+from decay_modulator import DecayModulator
+
 # ============================================
 # Configuration
 # ============================================
@@ -145,6 +148,8 @@ class SearchRequest(BaseModel):
     min_similarity: float = Field(default=0.5, ge=0.0, le=1.0, description="Minimum similarity threshold (0-1)")
     use_emotional_salience: bool = Field(default=False, description="LAB_001: Weight results by emotional salience")
     salience_boost_alpha: float = Field(default=0.5, ge=0.0, le=2.0, description="LAB_001: Salience boost factor (0=none, 0.5=moderate, 1.0=strong)")
+    use_decay_modulation: bool = Field(default=False, description="LAB_002: Modulate decay rate by emotional salience (requires LAB_001)")
+    decay_base: float = Field(default=0.95, ge=0.90, le=0.98, description="LAB_002: Daily decay rate (0.95=standard, 0.93=faster, 0.97=slower)")
 
 class SearchResult(BaseModel):
     episode_id: str
@@ -157,6 +162,12 @@ class SearchResult(BaseModel):
     salience_score: Optional[float] = None
     original_similarity: Optional[float] = None
     salience_boost_applied: Optional[float] = None
+    # LAB_002: Decay Modulation metadata
+    age_days: Optional[int] = None
+    base_decay: Optional[float] = None
+    modulated_decay: Optional[float] = None
+    modulation_factor: Optional[float] = None
+    effective_age_days: Optional[float] = None
 
 class SearchResponse(BaseModel):
     success: bool
@@ -650,12 +661,43 @@ async def search_memories(request: SearchRequest):
                         'final_score': final_score
                     })
 
+                # LAB_002: Apply decay modulation if enabled (requires LAB_001 salience)
+                if request.use_decay_modulation:
+                    modulator = DecayModulator(decay_base=request.decay_base)
+
+                    for item in reranked_results:
+                        row = item['row']
+                        created_at = row[4]  # timestamp
+
+                        # Calculate decay-modulated score
+                        decay_result = modulator.calculate_decay_modulated_score(
+                            similarity=item['final_score'],  # Use LAB_001 score as input
+                            created_at=created_at,
+                            salience_score=item['salience_score']
+                        )
+
+                        # Update final score with decay modulation
+                        item['final_score'] = decay_result.modulated_score
+
+                        # Store decay metadata
+                        item['decay_metadata'] = {
+                            'age_days': decay_result.actual_age_days,
+                            'base_decay': decay_result.base_decay,
+                            'modulated_decay': decay_result.modulated_decay,
+                            'modulation_factor': decay_result.modulation_factor,
+                            'effective_age_days': decay_result.effective_age_days
+                        }
+
                 # Sort by final score
                 reranked_results.sort(key=lambda x: x['final_score'], reverse=True)
 
                 # Build results with salience metadata
                 for item in reranked_results[:request.limit]:  # Re-apply limit after re-ranking
                     row = item['row']
+
+                    # Prepare decay metadata if LAB_002 was applied
+                    decay_meta = item.get('decay_metadata', {})
+
                     search_results.append(SearchResult(
                         episode_id=str(row[0]),
                         content=row[1],
@@ -663,10 +705,16 @@ async def search_memories(request: SearchRequest):
                         importance_score=float(row[2]),
                         tags=row[3] or [],
                         created_at=row[4],
-                        # Salience metadata
+                        # LAB_001: Salience metadata
                         salience_score=item['salience_score'],
                         original_similarity=item['original_similarity'],
-                        salience_boost_applied=request.salience_boost_alpha
+                        salience_boost_applied=request.salience_boost_alpha,
+                        # LAB_002: Decay metadata (if applied)
+                        age_days=decay_meta.get('age_days'),
+                        base_decay=decay_meta.get('base_decay'),
+                        modulated_decay=decay_meta.get('modulated_decay'),
+                        modulation_factor=decay_meta.get('modulation_factor'),
+                        effective_age_days=decay_meta.get('effective_age_days')
                     ))
 
             except Exception as e:
