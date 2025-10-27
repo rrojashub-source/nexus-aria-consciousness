@@ -14,6 +14,7 @@ Inspired by:
 Author: NEXUS + Ricardo
 Date: October 27, 2025
 Lab: LAB_003 - Sleep Consolidation
+Lab: LAB_004 - Curiosity-Driven Memory (novelty detection)
 """
 
 import numpy as np
@@ -24,6 +25,26 @@ from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 import json
 import math
+import sys
+import os
+
+# LAB_004: Curiosity-Driven Memory - Novelty Detection
+# Add NEXUS_LABS path for imports
+sys.path.insert(0, '/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001/NEXUS_LABS/LAB_004_Curiosity_Driven_Memory/implementation')
+try:
+    from novelty_detector import (
+        NoveltyDetector,
+        Episode as NoveltyEpisode,
+        build_semantic_clusters,
+        build_emotional_baseline,
+        build_sequence_model,
+        build_context_model,
+        BaselineModels
+    )
+    LAB_004_AVAILABLE = True
+except ImportError as e:
+    print(f"LAB_004 not available: {e}")
+    LAB_004_AVAILABLE = False
 
 
 @dataclass
@@ -45,6 +66,10 @@ class Episode:
     # LAB_003 scores (calculated)
     breakthrough_score: float = 0.0
     consolidated_salience_score: Optional[float] = None
+
+    # LAB_004 scores (calculated during consolidation)
+    novelty_score: float = 0.0
+    novelty_breakdown: Optional[Dict[str, float]] = None
 
 
 @dataclass
@@ -105,6 +130,17 @@ class ConsolidationEngine:
 
         self.conn = None
         self.cursor = None
+
+        # LAB_004: Novelty detection
+        self.novelty_detector = None
+        self.baseline_models = None
+        if LAB_004_AVAILABLE:
+            try:
+                self.novelty_detector = NoveltyDetector()
+                print("✅ LAB_004: NoveltyDetector initialized")
+            except Exception as e:
+                print(f"⚠️ LAB_004: NoveltyDetector initialization failed: {e}")
+                self.novelty_detector = None
 
     def connect(self):
         """Establish database connection"""
@@ -203,6 +239,70 @@ class ConsolidationEngine:
 
         return episodes
 
+    def fetch_episodes_from_date_range(self, start_date: datetime, end_date: datetime) -> List[Episode]:
+        """
+        Fetch all episodes from a date range
+
+        Args:
+            start_date: Start of range
+            end_date: End of range
+
+        Returns:
+            List of Episode objects
+        """
+        query = """
+            SELECT
+                episode_id,
+                content,
+                created_at,
+                tags,
+                importance_score,
+                metadata
+            FROM nexus_memory.zep_episodic_memory
+            WHERE created_at >= %s AND created_at < %s
+            ORDER BY created_at ASC
+        """
+
+        self.cursor.execute(query, (start_date, end_date))
+        rows = self.cursor.fetchall()
+
+        episodes = []
+        for row in rows:
+            # Parse metadata
+            metadata = row['metadata'] if row['metadata'] else {}
+
+            emotional_8d = metadata.get('emotional_8d', {
+                'joy': 0.5, 'trust': 0.5, 'fear': 0.0, 'surprise': 0.5,
+                'sadness': 0.0, 'disgust': 0.0, 'anger': 0.0, 'anticipation': 0.5
+            })
+
+            somatic_7d = metadata.get('somatic_7d', {
+                'valence': 0.0, 'arousal': 0.5, 'body_state': 0.5,
+                'cognitive_load': 0.5, 'emotional_regulation': 0.5,
+                'social_engagement': 0.5, 'temporal_awareness': 0.5
+            })
+
+            salience_score = metadata.get('salience_score', 0.5)
+            session_id = metadata.get('session_id', None)
+            embedding = metadata.get('embedding', [])  # Include embedding for novelty
+
+            episode = Episode(
+                episode_id=str(row['episode_id']),
+                content=row['content'],
+                embedding=embedding if embedding else [],
+                created_at=row['created_at'],
+                session_id=session_id,
+                tags=row['tags'] if row['tags'] else [],
+                importance_score=float(row['importance_score']),
+                salience_score=salience_score,
+                emotional_8d=emotional_8d,
+                somatic_7d=somatic_7d
+            )
+
+            episodes.append(episode)
+
+        return episodes
+
     # =====================================================================
     # STEP 2: IDENTIFY BREAKTHROUGHS
     # =====================================================================
@@ -213,7 +313,9 @@ class ConsolidationEngine:
         """
         Detect breakthrough episodes using composite scoring
 
-        Based on O'Neill 2010: Reward-related memories replayed 5-10x more
+        Based on:
+        - O'Neill 2010: Reward-related memories replayed 5-10x more
+        - LAB_004: Novelty bonus for surprising episodes
 
         Args:
             episodes: List of episodes from the day
@@ -225,24 +327,50 @@ class ConsolidationEngine:
         if not episodes:
             return []
 
+        # Check if LAB_004 novelty available
+        has_novelty = any(ep.novelty_score > 0 for ep in episodes)
+
         for episode in episodes:
             score = 0.0
 
-            # Signal 1: Emotional salience (LAB_001) - 40% weight
-            score += episode.salience_score * 0.4
+            if has_novelty:
+                # Enhanced scoring with LAB_004 novelty
+                # Signal 1: Emotional salience (LAB_001) - 35% weight (reduced from 40%)
+                score += episode.salience_score * 0.35
 
-            # Signal 2: Breakthrough emotions - 25% weight
-            breakthrough_emotions = ['joy', 'trust', 'anticipation', 'surprise']
-            emotion_sum = sum(episode.emotional_8d.get(e, 0)
-                            for e in breakthrough_emotions)
-            score += (emotion_sum / 4) * 0.25
+                # Signal 2: Breakthrough emotions - 20% weight (reduced from 25%)
+                breakthrough_emotions = ['joy', 'trust', 'anticipation', 'surprise']
+                emotion_sum = sum(episode.emotional_8d.get(e, 0)
+                                for e in breakthrough_emotions)
+                score += (emotion_sum / 4) * 0.20
 
-            # Signal 3: Somatic valence (positive outcomes) - 15% weight
-            valence = episode.somatic_7d.get('valence', 0)
-            score += max(0, valence) * 0.15
+                # Signal 3: Somatic valence (positive outcomes) - 15% weight (same)
+                valence = episode.somatic_7d.get('valence', 0)
+                score += max(0, valence) * 0.15
 
-            # Signal 4: Importance score (pre-existing) - 20% weight
-            score += episode.importance_score * 0.20
+                # Signal 4: Importance score (pre-existing) - 15% weight (reduced from 20%)
+                score += episode.importance_score * 0.15
+
+                # Signal 5: Novelty score (LAB_004) - 15% weight (NEW)
+                score += episode.novelty_score * 0.15
+
+            else:
+                # Original LAB_003 scoring (without novelty)
+                # Signal 1: Emotional salience (LAB_001) - 40% weight
+                score += episode.salience_score * 0.4
+
+                # Signal 2: Breakthrough emotions - 25% weight
+                breakthrough_emotions = ['joy', 'trust', 'anticipation', 'surprise']
+                emotion_sum = sum(episode.emotional_8d.get(e, 0)
+                                for e in breakthrough_emotions)
+                score += (emotion_sum / 4) * 0.25
+
+                # Signal 3: Somatic valence (positive outcomes) - 15% weight
+                valence = episode.somatic_7d.get('valence', 0)
+                score += max(0, valence) * 0.15
+
+                # Signal 4: Importance score (pre-existing) - 20% weight
+                score += episode.importance_score * 0.20
 
             episode.breakthrough_score = score
 
@@ -254,6 +382,132 @@ class ConsolidationEngine:
         breakthroughs.sort(key=lambda x: x.breakthrough_score, reverse=True)
 
         return breakthroughs
+
+    # =====================================================================
+    # LAB_004: NOVELTY DETECTION
+    # =====================================================================
+
+    def build_novelty_baselines(self, lookback_days: int = 60):
+        """
+        Build baseline models for novelty detection
+
+        Args:
+            lookback_days: How many days of history to use (default 60)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not LAB_004_AVAILABLE or not self.novelty_detector:
+            print("⚠️ LAB_004: NoveltyDetector not available, skipping baseline building")
+            return False
+
+        try:
+            print(f"📊 LAB_004: Building baseline models from last {lookback_days} days...")
+
+            # Fetch historical episodes for baseline
+            now = datetime.now()
+            start_date = now - timedelta(days=lookback_days)
+
+            historical_episodes = []
+            all_episodes = self.fetch_episodes_from_date_range(start_date, now)
+
+            # Convert to NoveltyEpisode format
+            for ep in all_episodes:
+                novelty_ep = NoveltyEpisode(
+                    episode_id=ep.episode_id,
+                    content=ep.content,
+                    embedding=ep.embedding,
+                    created_at=ep.created_at,
+                    somatic_7d=ep.somatic_7d,
+                    emotional_8d=ep.emotional_8d,
+                    metadata={'context': ep.session_id or 'unknown'},
+                    salience_score=ep.salience_score
+                )
+                historical_episodes.append(novelty_ep)
+
+            if len(historical_episodes) < 10:
+                print(f"⚠️ LAB_004: Insufficient data ({len(historical_episodes)} episodes), skipping baseline building")
+                return False
+
+            # Build baselines
+            self.baseline_models = self.novelty_detector.build_baseline_models(historical_episodes)
+
+            print(f"✅ LAB_004: Baseline models built from {len(historical_episodes)} episodes")
+            return True
+
+        except Exception as e:
+            print(f"❌ LAB_004: Baseline building failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def calculate_novelty_for_episodes(self, episodes: List[Episode]):
+        """
+        Calculate novelty scores for all episodes
+
+        Args:
+            episodes: List of episodes to score
+
+        Modifies episodes in-place, adding novelty_score and novelty_breakdown
+        """
+        if not LAB_004_AVAILABLE or not self.novelty_detector or not self.baseline_models:
+            print("⚠️ LAB_004: Novelty scoring unavailable, skipping")
+            return
+
+        try:
+            print(f"🎲 LAB_004: Calculating novelty for {len(episodes)} episodes...")
+
+            for i, episode in enumerate(episodes):
+                # Get recent history (last 10 episodes before current)
+                recent_history = []
+                for j in range(max(0, i-10), i):
+                    prev_ep = episodes[j]
+                    novelty_ep = NoveltyEpisode(
+                        episode_id=prev_ep.episode_id,
+                        content=prev_ep.content,
+                        embedding=prev_ep.embedding,
+                        created_at=prev_ep.created_at,
+                        somatic_7d=prev_ep.somatic_7d,
+                        emotional_8d=prev_ep.emotional_8d,
+                        metadata={'context': prev_ep.session_id or 'unknown'},
+                        salience_score=prev_ep.salience_score
+                    )
+                    recent_history.append(novelty_ep)
+
+                # Convert current episode to NoveltyEpisode
+                current_novelty_ep = NoveltyEpisode(
+                    episode_id=episode.episode_id,
+                    content=episode.content,
+                    embedding=episode.embedding,
+                    created_at=episode.created_at,
+                    somatic_7d=episode.somatic_7d,
+                    emotional_8d=episode.emotional_8d,
+                    metadata={'context': episode.session_id or 'unknown'},
+                    salience_score=episode.salience_score
+                )
+
+                # Calculate novelty
+                novelty_score, breakdown = self.novelty_detector.score_episode(
+                    current_novelty_ep,
+                    recent_history
+                )
+
+                # Store in episode
+                episode.novelty_score = novelty_score
+                episode.novelty_breakdown = {
+                    'semantic_novelty': breakdown.semantic_novelty,
+                    'emotional_surprise': breakdown.emotional_surprise,
+                    'pattern_violation': breakdown.pattern_violation,
+                    'contextual_mismatch': breakdown.contextual_mismatch,
+                    'total_novelty': breakdown.total_novelty
+                }
+
+            print(f"✅ LAB_004: Novelty calculated for all episodes")
+
+        except Exception as e:
+            print(f"❌ LAB_004: Novelty calculation failed: {e}")
+            import traceback
+            traceback.print_exc()
 
     # =====================================================================
     # STEP 3: TRACE BACKWARD CHAINS
@@ -354,6 +608,7 @@ class ConsolidationEngine:
         Based on:
         - O'Neill 2010: 5-10x replay for rewarding experiences
         - Dickinson 1996: Retrospective revaluation
+        - LAB_004: Additional novelty bonus for surprising episodes
 
         Args:
             chain: List of episodes leading to breakthrough
@@ -374,25 +629,33 @@ class ConsolidationEngine:
             time_diff_hours = (breakthrough.created_at - episode.created_at).total_seconds() / 3600
             temporal_decay = np.exp(-time_diff_hours / 6.0)  # Half-life 6 hours
 
-            # Consolidation boost formula
-            boost = (
+            # Base consolidation boost formula
+            base_boost = (
                 breakthrough_score *
                 position_weight *
                 temporal_decay *
                 0.25  # Scale factor
             )
 
-            # Cap boost at +0.20
-            boost = min(boost, 0.20)
+            # LAB_004: Add novelty bonus for high-novelty episodes
+            novelty_bonus = 0.0
+            if episode.novelty_score > 0.7:
+                novelty_bonus = (episode.novelty_score - 0.7) * 0.5  # Up to +0.15
+
+            # Total boost
+            total_boost = base_boost + novelty_bonus
+
+            # Cap boost at +0.25
+            total_boost = min(total_boost, 0.25)
 
             # Calculate consolidated salience
-            consolidated_salience = min(original_salience + boost, 1.0)
+            consolidated_salience = min(original_salience + total_boost, 1.0)
 
             # Store both scores
             episode.consolidated_salience_score = consolidated_salience
 
             # Update importance_score
-            episode.importance_score *= (1.0 + boost)
+            episode.importance_score *= (1.0 + total_boost)
 
     # =====================================================================
     # STEP 5: INTERLEAVED REPLAY
@@ -646,7 +909,29 @@ class ConsolidationEngine:
                 top_breakthroughs=[]
             )
 
-        # Step 2: Identify breakthroughs
+        # Step 1.5: LAB_004 - Build novelty baselines (if not already built)
+        print("  Step 1.5: LAB_004 - Building novelty baselines...")
+        if LAB_004_AVAILABLE and self.novelty_detector and not self.baseline_models:
+            baseline_success = self.build_novelty_baselines(lookback_days=60)
+            if baseline_success:
+                print("    ✅ Baseline models ready")
+            else:
+                print("    ⚠️ Baseline building skipped (insufficient data or error)")
+        elif LAB_004_AVAILABLE and self.baseline_models:
+            print("    ✅ Using existing baseline models")
+        else:
+            print("    ⚠️ LAB_004 unavailable, skipping novelty detection")
+
+        # Step 1.6: LAB_004 - Calculate novelty scores
+        print("  Step 1.6: LAB_004 - Calculating novelty scores...")
+        if LAB_004_AVAILABLE and self.novelty_detector and self.baseline_models:
+            self.calculate_novelty_for_episodes(episodes)
+            high_novelty_count = sum(1 for ep in episodes if ep.novelty_score > 0.7)
+            print(f"    Found {high_novelty_count} high-novelty episodes (>0.7)")
+        else:
+            print("    ⚠️ Novelty calculation skipped")
+
+        # Step 2: Identify breakthroughs (enhanced with LAB_004 novelty if available)
         print("  Step 2: Identifying breakthroughs...")
         breakthroughs = self.identify_breakthroughs(episodes)
         print(f"    Detected {len(breakthroughs)} breakthroughs")
