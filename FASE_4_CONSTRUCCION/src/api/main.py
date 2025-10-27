@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg
 from psycopg.types.json import Json
@@ -33,6 +33,9 @@ from emotional_salience_scorer import EmotionalSalienceScorer
 
 # LAB_002: Decay Modulation
 from decay_modulator import DecayModulator
+
+# LAB_003: Sleep Consolidation (lazy import to avoid psycopg2 dependency at startup)
+# from consolidation_engine import ConsolidationEngine
 
 # ============================================
 # Configuration
@@ -1775,6 +1778,70 @@ async def hybrid_query(request: HybridQueryRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error in hybrid query: {str(e)}"
+        )
+
+
+# ==============================================================================
+# LAB_003: Sleep Consolidation
+# ==============================================================================
+
+@app.post("/memory/consolidate", tags=["LAB_003"])
+async def consolidate_memories(
+    date_str: Optional[str] = None
+):
+    """
+    Manually trigger sleep consolidation for a specific date
+
+    LAB_003: Mimics biological sleep consolidation
+    - Detects breakthrough episodes
+    - Traces backward chains
+    - Calculates consolidated salience scores
+    - Creates memory traces
+
+    Args:
+        date_str: Date to consolidate (YYYY-MM-DD format). Defaults to yesterday.
+
+    Returns:
+        Consolidation report with statistics
+    """
+    try:
+        # Lazy import (avoid psycopg2 dependency at startup)
+        from consolidation_engine import ConsolidationEngine
+
+        # Parse date
+        if date_str:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d")
+        else:
+            target_date = datetime.now() - timedelta(days=1)
+
+        # Execute consolidation
+        with ConsolidationEngine(
+            db_host=POSTGRES_HOST,
+            db_port=POSTGRES_PORT,
+            db_name=POSTGRES_DB,
+            db_user=POSTGRES_USER,
+            db_password=POSTGRES_PASSWORD
+        ) as engine:
+            report = engine.consolidate_daily_memories(target_date)
+
+        return {
+            "success": True,
+            "date": report.date.isoformat(),
+            "episodes_processed": report.episodes_processed,
+            "breakthrough_count": report.breakthrough_count,
+            "chain_count": report.chain_count,
+            "episodes_boosted": report.episodes_boosted,
+            "trace_count": report.trace_count,
+            "avg_boost": round(report.avg_boost, 3),
+            "max_boost": round(report.max_boost, 3),
+            "processing_time_seconds": round(report.processing_time_seconds, 2),
+            "top_breakthroughs": report.top_breakthroughs
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Consolidation failed: {str(e)}"
         )
 
 
