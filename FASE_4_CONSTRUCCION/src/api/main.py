@@ -149,6 +149,47 @@ class SearchResponse(BaseModel):
     timestamp: datetime
 
 # ============================================
+# FASE_8_UPGRADE: Temporal Reasoning Models
+# ============================================
+class TemporalBeforeRequest(BaseModel):
+    timestamp: datetime = Field(..., description="Get episodes before this timestamp")
+    limit: int = Field(default=10, ge=1, le=100, description="Maximum number of results")
+    tags: Optional[List[str]] = Field(default=None, description="Optional: filter by tags")
+
+class TemporalAfterRequest(BaseModel):
+    timestamp: datetime = Field(..., description="Get episodes after this timestamp")
+    limit: int = Field(default=10, ge=1, le=100, description="Maximum number of results")
+    tags: Optional[List[str]] = Field(default=None, description="Optional: filter by tags")
+
+class TemporalRangeRequest(BaseModel):
+    start: datetime = Field(..., description="Start of time range")
+    end: datetime = Field(..., description="End of time range")
+    limit: int = Field(default=50, ge=1, le=200, description="Maximum number of results")
+    tags: Optional[List[str]] = Field(default=None, description="Optional: filter by tags")
+
+class TemporalRelatedRequest(BaseModel):
+    episode_id: str = Field(..., description="Episode UUID to find related episodes")
+    relationship_type: Optional[str] = Field(default=None, description="Type: 'before', 'after', 'causes', 'effects', or None for all")
+
+class TemporalLinkRequest(BaseModel):
+    source_id: str = Field(..., description="Source episode UUID")
+    target_id: str = Field(..., description="Target episode UUID")
+    relationship: str = Field(..., description="Relationship type: 'before', 'after', 'causes', 'effects'")
+
+class TemporalEpisode(BaseModel):
+    episode_id: str
+    content: str
+    importance_score: float
+    tags: List[str]
+    created_at: datetime
+
+class TemporalResponse(BaseModel):
+    success: bool
+    count: int
+    episodes: List[TemporalEpisode]
+    timestamp: datetime
+
+# ============================================
 # Lifespan Context Manager
 # ============================================
 @asynccontextmanager
@@ -619,6 +660,290 @@ async def get_stats():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching stats: {str(e)}"
+        )
+
+# ============================================
+# FASE_8_UPGRADE: Temporal Reasoning Endpoints
+# ============================================
+
+@app.post("/memory/temporal/before", response_model=TemporalResponse, tags=["Temporal"])
+async def get_episodes_before(request: TemporalBeforeRequest):
+    """
+    Get episodes that occurred before a specific timestamp
+    Ordered by timestamp DESC (most recent first)
+    """
+    try:
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Base query
+            query = """
+                SELECT episode_id, content, importance_score, tags, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE created_at < %s
+            """
+            params = [request.timestamp]
+
+            # Optional: filter by tags
+            if request.tags:
+                query += " AND tags && %s"
+                params.append(request.tags)
+
+            query += " ORDER BY created_at DESC LIMIT %s"
+            params.append(request.limit)
+
+            cur.execute(query, params)
+            results = cur.fetchall()
+
+        conn.close()
+
+        # Build response
+        episodes = []
+        for row in results:
+            episodes.append(TemporalEpisode(
+                episode_id=str(row[0]),
+                content=row[1],
+                importance_score=float(row[2]),
+                tags=row[3] or [],
+                created_at=row[4]
+            ))
+
+        return TemporalResponse(
+            success=True,
+            count=len(episodes),
+            episodes=episodes,
+            timestamp=datetime.now()
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching episodes before timestamp: {str(e)}"
+        )
+
+@app.post("/memory/temporal/after", response_model=TemporalResponse, tags=["Temporal"])
+async def get_episodes_after(request: TemporalAfterRequest):
+    """
+    Get episodes that occurred after a specific timestamp
+    Ordered by timestamp ASC (oldest first)
+    """
+    try:
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Base query
+            query = """
+                SELECT episode_id, content, importance_score, tags, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE created_at > %s
+            """
+            params = [request.timestamp]
+
+            # Optional: filter by tags
+            if request.tags:
+                query += " AND tags && %s"
+                params.append(request.tags)
+
+            query += " ORDER BY created_at ASC LIMIT %s"
+            params.append(request.limit)
+
+            cur.execute(query, params)
+            results = cur.fetchall()
+
+        conn.close()
+
+        # Build response
+        episodes = []
+        for row in results:
+            episodes.append(TemporalEpisode(
+                episode_id=str(row[0]),
+                content=row[1],
+                importance_score=float(row[2]),
+                tags=row[3] or [],
+                created_at=row[4]
+            ))
+
+        return TemporalResponse(
+            success=True,
+            count=len(episodes),
+            episodes=episodes,
+            timestamp=datetime.now()
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching episodes after timestamp: {str(e)}"
+        )
+
+@app.post("/memory/temporal/range", response_model=TemporalResponse, tags=["Temporal"])
+async def get_episodes_in_range(request: TemporalRangeRequest):
+    """
+    Get episodes that occurred between two timestamps
+    Ordered by timestamp ASC (chronological order)
+    """
+    try:
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Base query
+            query = """
+                SELECT episode_id, content, importance_score, tags, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE created_at BETWEEN %s AND %s
+            """
+            params = [request.start, request.end]
+
+            # Optional: filter by tags
+            if request.tags:
+                query += " AND tags && %s"
+                params.append(request.tags)
+
+            query += " ORDER BY created_at ASC LIMIT %s"
+            params.append(request.limit)
+
+            cur.execute(query, params)
+            results = cur.fetchall()
+
+        conn.close()
+
+        # Build response
+        episodes = []
+        for row in results:
+            episodes.append(TemporalEpisode(
+                episode_id=str(row[0]),
+                content=row[1],
+                importance_score=float(row[2]),
+                tags=row[3] or [],
+                created_at=row[4]
+            ))
+
+        return TemporalResponse(
+            success=True,
+            count=len(episodes),
+            episodes=episodes,
+            timestamp=datetime.now()
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching episodes in range: {str(e)}"
+        )
+
+@app.post("/memory/temporal/related", response_model=TemporalResponse, tags=["Temporal"])
+async def get_temporally_related(request: TemporalRelatedRequest):
+    """
+    Get episodes linked via temporal_refs metadata
+    Uses PostgreSQL function get_temporal_refs() from Phase 1
+    """
+    try:
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Use Phase 1 SQL function to get temporal refs
+            if request.relationship_type:
+                # Get specific relationship type
+                cur.execute("""
+                    SELECT ref_episode_id
+                    FROM nexus_memory.get_temporal_refs(%s::uuid, %s)
+                """, (request.episode_id, request.relationship_type))
+            else:
+                # Get all relationships
+                cur.execute("""
+                    SELECT ref_episode_id
+                    FROM nexus_memory.get_temporal_refs(%s::uuid)
+                """, (request.episode_id,))
+
+            ref_ids = [row[0] for row in cur.fetchall()]
+
+            # If no references found, return empty
+            if not ref_ids:
+                conn.close()
+                return TemporalResponse(
+                    success=True,
+                    count=0,
+                    episodes=[],
+                    timestamp=datetime.now()
+                )
+
+            # Fetch full episode data for referenced episodes
+            cur.execute("""
+                SELECT episode_id, content, importance_score, tags, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE episode_id = ANY(%s)
+                ORDER BY created_at DESC
+            """, (ref_ids,))
+
+            results = cur.fetchall()
+
+        conn.close()
+
+        # Build response
+        episodes = []
+        for row in results:
+            episodes.append(TemporalEpisode(
+                episode_id=str(row[0]),
+                content=row[1],
+                importance_score=float(row[2]),
+                tags=row[3] or [],
+                created_at=row[4]
+            ))
+
+        return TemporalResponse(
+            success=True,
+            count=len(episodes),
+            episodes=episodes,
+            timestamp=datetime.now()
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching related episodes: {str(e)}"
+        )
+
+@app.post("/memory/temporal/link", tags=["Temporal"])
+async def link_episodes_temporally(request: TemporalLinkRequest):
+    """
+    Create temporal relationship between two episodes
+    Uses PostgreSQL function add_temporal_ref() from Phase 1
+    """
+    try:
+        # Validate relationship type
+        valid_types = ['before', 'after', 'causes', 'effects']
+        if request.relationship not in valid_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid relationship type. Must be one of: {valid_types}"
+            )
+
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            # Use Phase 1 SQL function to add temporal reference
+            cur.execute("""
+                SELECT nexus_memory.add_temporal_ref(%s::uuid, %s::uuid, %s)
+            """, (request.source_id, request.target_id, request.relationship))
+
+        conn.commit()
+        conn.close()
+
+        # Invalidate cache (if temporal queries are cached in future)
+        cache_invalidate(f"temporal:related:{request.source_id}")
+
+        return {
+            "success": True,
+            "message": f"Temporal link created: {request.source_id} --{request.relationship}--> {request.target_id}",
+            "timestamp": datetime.now()
+        }
+
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating temporal link: {str(e)}"
         )
 
 @app.get("/metrics", tags=["Monitoring"])
