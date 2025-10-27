@@ -57,24 +57,29 @@ None - Session 1 objectives complete!
    - Include: DMR benchmark code, TRACKING.md, comparative research
    - Document API bug discovery
 
-7. **LongMemEval Benchmark** (Week 1-2)
-   - Implement conversational memory benchmark
-   - Target: +30% improvement over baseline
-
-8. **Temporal Reasoning** (Week 2-3)
+7. **Temporal Reasoning** (Week 2-3) ← NEXT PRIORITY
    - Schema updates (temporal_refs field)
-   - Temporal query engine
-   - Testing
+   - Temporal query engine (before/after/between queries)
+   - Time-aware context retrieval
+   - Testing with timestamped consciousness data
 
-9. **HNSW Optimization** (Week 4)
+8. **HNSW Optimization** (Week 4)
    - Currently: m=16, ef_construction=64, 100% DMR accuracy
-   - Decision: Skip optimization (already exceeds SOTA)
-   - Alternative: Focus on intelligent decay and extraction pipeline
+   - Decision: ✅ SKIPPED (already exceeds SOTA)
+   - Reason: No optimization needed, focus on features
 
-10. **Intelligent Decay** (Week 5-6)
-    - Importance-based memory retention
-    - Temporal decay algorithms
-    - Testing with real workload
+9. **Intelligent Decay** (Week 5-6)
+   - Importance-based memory retention
+   - Temporal decay algorithms
+   - Testing with real workload
+   - Automatic pruning of low-importance old memories
+
+10. **LongMemEval Benchmark** (Week 6-7) ← MOVED (complex integration)
+    - Full framework integration (vLLM, embedders, GPT-4o)
+    - 5 core abilities: extraction, multi-session, temporal, updates, abstention
+    - Official evaluation vs. SOTA systems
+    - Target: +30% improvement over baseline
+    - Reason for delay: Complex external dependencies, better after core features
 
 ---
 
@@ -99,6 +104,10 @@ None - Session 1 objectives complete!
 ### Decision 5: Unique Sequential IDs for Synthetic Data
 **Date:** Oct 27, 2025
 **Rationale:** Random data with duplicates caused semantic ambiguity (24% accuracy). Sequential unique IDs (user0, action0, service1, event1, etc.) ensure each query has exactly ONE correct answer, enabling accurate benchmark measurement (100% accuracy).
+
+### Decision 6: Roadmap Reorder - Prioritize Functional Features Over Academic Benchmarks
+**Date:** Oct 27, 2025
+**Rationale:** LongMemEval requires complex external integration (vLLM, multiple embedders, GPT-4o, 3 datasets). Analysis shows 3-5 days vs temporal reasoning (2-3 hours design, immediate functional value). Decision: Move LongMemEval to Week 6-7, prioritize Temporal Reasoning (Week 2-3 NOW) and Intelligent Decay (Week 5-6). Focus on features that make NEXUS better for real projects, not just academic comparison. LongMemEval still happens, but after core features complete.
 
 ---
 
