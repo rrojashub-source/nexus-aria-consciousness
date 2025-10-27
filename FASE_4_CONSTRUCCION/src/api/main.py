@@ -28,6 +28,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fact_extractor import extract_facts_from_content
 from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest, HybridQueryResponse
 
+# LAB_001: Emotional Salience
+from emotional_salience_scorer import EmotionalSalienceScorer
+
 # ============================================
 # Configuration
 # ============================================
@@ -140,6 +143,8 @@ class SearchRequest(BaseModel):
     query: str = Field(..., description="Search query text")
     limit: int = Field(default=10, ge=1, le=100, description="Maximum number of results")
     min_similarity: float = Field(default=0.5, ge=0.0, le=1.0, description="Minimum similarity threshold (0-1)")
+    use_emotional_salience: bool = Field(default=False, description="LAB_001: Weight results by emotional salience")
+    salience_boost_alpha: float = Field(default=0.5, ge=0.0, le=2.0, description="LAB_001: Salience boost factor (0=none, 0.5=moderate, 1.0=strong)")
 
 class SearchResult(BaseModel):
     episode_id: str
@@ -148,6 +153,10 @@ class SearchResult(BaseModel):
     importance_score: float
     tags: List[str]
     created_at: datetime
+    # LAB_001: Emotional Salience metadata
+    salience_score: Optional[float] = None
+    original_similarity: Optional[float] = None
+    salience_boost_applied: Optional[float] = None
 
 class SearchResponse(BaseModel):
     success: bool
@@ -606,17 +615,76 @@ async def search_memories(request: SearchRequest):
 
         conn.close()
 
-        # Build search results
+        # Initialize search_results (will be populated below)
         search_results = []
-        for row in results:
-            search_results.append(SearchResult(
-                episode_id=str(row[0]),
-                content=row[1],
-                similarity_score=float(row[5]),
-                importance_score=float(row[2]),
-                tags=row[3] or [],
-                created_at=row[4]
-            ))
+
+        # LAB_001: Apply emotional salience re-ranking if enabled
+        if request.use_emotional_salience and results:
+            try:
+                # Initialize scorer (connects inside nexus_postgresql container)
+                scorer = EmotionalSalienceScorer(
+                    db_host=POSTGRES_HOST,
+                    db_port=POSTGRES_PORT,
+                    db_name=POSTGRES_DB,
+                    db_user=POSTGRES_USER,
+                    db_password=POSTGRES_PASSWORD
+                )
+
+                # Calculate salience for each result
+                reranked_results = []
+                for row in results:
+                    episode_id = str(row[0])
+                    original_similarity = float(row[5])
+                    timestamp = row[4]
+
+                    # Calculate emotional salience
+                    salience = scorer.calculate_salience(episode_id, timestamp)
+
+                    # Apply re-ranking: final_score = similarity * (1 + alpha * salience)
+                    final_score = original_similarity * (1 + request.salience_boost_alpha * salience.total_score)
+
+                    reranked_results.append({
+                        'row': row,
+                        'original_similarity': original_similarity,
+                        'salience_score': salience.total_score,
+                        'final_score': final_score
+                    })
+
+                # Sort by final score
+                reranked_results.sort(key=lambda x: x['final_score'], reverse=True)
+
+                # Build results with salience metadata
+                for item in reranked_results[:request.limit]:  # Re-apply limit after re-ranking
+                    row = item['row']
+                    search_results.append(SearchResult(
+                        episode_id=str(row[0]),
+                        content=row[1],
+                        similarity_score=item['final_score'],  # New weighted score
+                        importance_score=float(row[2]),
+                        tags=row[3] or [],
+                        created_at=row[4],
+                        # Salience metadata
+                        salience_score=item['salience_score'],
+                        original_similarity=item['original_similarity'],
+                        salience_boost_applied=request.salience_boost_alpha
+                    ))
+
+            except Exception as e:
+                # If salience scoring fails, fall back to standard results
+                print(f"LAB_001: Emotional salience scoring failed, falling back to standard search: {str(e)}")
+                request.use_emotional_salience = False  # Disable for fallback
+
+        # Build search results (standard or fallback)
+        if not request.use_emotional_salience:
+            for row in results:
+                search_results.append(SearchResult(
+                    episode_id=str(row[0]),
+                    content=row[1],
+                    similarity_score=float(row[5]),
+                    importance_score=float(row[2]),
+                    tags=row[3] or [],
+                    created_at=row[4]
+                ))
 
         return SearchResponse(
             success=True,
