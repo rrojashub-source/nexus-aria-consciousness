@@ -946,6 +946,128 @@ async def link_episodes_temporally(request: TemporalLinkRequest):
             detail=f"Error creating temporal link: {str(e)}"
         )
 
+# ============================================
+# FASE_8_UPGRADE: Consciousness Integration
+# ============================================
+
+class ConsciousnessUpdateRequest(BaseModel):
+    state_type: str = Field(..., description="Type: 'emotional' or 'somatic'")
+    state_data: Dict[str, Any] = Field(..., description="State values (e.g., joy, trust, valence, arousal)")
+    importance: float = Field(default=0.7, ge=0.0, le=1.0)
+    tags: Optional[List[str]] = Field(default_factory=list)
+    auto_link_previous: bool = Field(default=True, description="Automatically link to previous state")
+
+class ConsciousnessUpdateResponse(BaseModel):
+    success: bool
+    episode_id: str
+    linked_to_previous: Optional[str] = None
+    temporal_chain_length: int = 0
+    timestamp: datetime
+
+@app.post("/memory/consciousness/update", response_model=ConsciousnessUpdateResponse, tags=["Consciousness"])
+async def update_consciousness_state(request: ConsciousnessUpdateRequest):
+    """
+    Update consciousness state (emotional or somatic) with automatic temporal linking
+
+    Automatically links to the previous state of the same type, creating temporal chains
+    that track consciousness evolution over time.
+    """
+    try:
+        # Validate state type
+        if request.state_type not in ["emotional", "somatic"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="state_type must be 'emotional' or 'somatic'"
+            )
+
+        # Build tags
+        tags = request.tags.copy()
+        tags.extend(["consciousness", f"{request.state_type}_state"])
+
+        # Create episode content
+        content = f"Consciousness {request.state_type} state update: {json_module.dumps(request.state_data, indent=2)}"
+
+        # Get database connection
+        conn = get_db_connection()
+
+        previous_episode_id = None
+        chain_length = 0
+
+        # Find previous state of same type (if auto_link enabled)
+        if request.auto_link_previous:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT episode_id, metadata
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE %s = ANY(tags)
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                """, (f"{request.state_type}_state",))
+
+                previous = cur.fetchone()
+                if previous:
+                    previous_episode_id = str(previous[0])
+
+                    # Calculate chain length from previous state
+                    prev_metadata = previous[1] or {}
+                    prev_chain_length = prev_metadata.get("temporal_chain_length", 0)
+                    chain_length = prev_chain_length + 1
+
+        # Create new episode
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO nexus_memory.zep_episodic_memory
+                (content, importance_score, tags, metadata)
+                VALUES (%s, %s, %s, %s)
+                RETURNING episode_id, created_at
+            """, (
+                content,
+                request.importance,
+                tags,
+                Json({
+                    "state_type": request.state_type,
+                    "state_data": request.state_data,
+                    "temporal_chain_length": chain_length
+                })
+            ))
+
+            result = cur.fetchone()
+            new_episode_id = str(result[0])
+            created_at = result[1]
+
+        # Create temporal link if previous exists
+        if previous_episode_id and request.auto_link_previous:
+            with conn.cursor() as cur:
+                # Link: new_episode --after--> previous_episode
+                cur.execute("""
+                    SELECT nexus_memory.add_temporal_ref(%s::uuid, %s::uuid, 'after')
+                """, (new_episode_id, previous_episode_id))
+
+        conn.commit()
+        conn.close()
+
+        # Invalidate cache
+        cache_invalidate("consciousness:*")
+
+        # Increment metrics
+        episodes_created_total.inc()
+
+        return ConsciousnessUpdateResponse(
+            success=True,
+            episode_id=new_episode_id,
+            linked_to_previous=previous_episode_id,
+            temporal_chain_length=chain_length,
+            timestamp=created_at
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating consciousness state: {str(e)}"
+        )
+
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
     """Prometheus metrics endpoint"""
