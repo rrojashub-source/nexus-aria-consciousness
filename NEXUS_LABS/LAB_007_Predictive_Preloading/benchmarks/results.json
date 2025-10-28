@@ -1,0 +1,11 @@
+{
+  "total_predictions": 111,
+  "correct_predictions": 84,
+  "overall_accuracy": 0.7567567567567568,
+  "precision@1": 0.0,
+  "precision@3": 0.0,
+  "precision@5": 0.7567567567567568,
+  "top1_correct": 0,
+  "top3_correct": 0,
+  "top5_correct": 84
+}
