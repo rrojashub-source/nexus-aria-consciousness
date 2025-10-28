@@ -213,6 +213,15 @@ class TemporalLinkRequest(BaseModel):
     target_id: str = Field(..., description="Target episode UUID")
     relationship: str = Field(..., description="Relationship type: 'before', 'after', 'causes', 'effects'")
 
+class ABTestMetricRequest(BaseModel):
+    variant: str = Field(..., description="Test variant: 'control' or 'treatment'")
+    retrieval_time_ms: float = Field(..., description="Retrieval time in milliseconds")
+    cache_hit: bool = Field(..., description="Whether cache was hit")
+    num_results: int = Field(..., description="Number of results returned")
+    context_coherence: Optional[float] = Field(default=None, description="Context coherence score (0-1)")
+    primed_count: int = Field(default=0, description="Number of primed episodes (treatment only)")
+    query_id: Optional[str] = Field(default=None, description="Optional query identifier")
+
 class TemporalEpisode(BaseModel):
     episode_id: str
     content: str
@@ -2004,15 +2013,7 @@ async def get_primed_episode(episode_uuid: str):
 # ============================================
 
 @app.post("/ab-test/record", tags=["A/B Testing"])
-async def record_ab_test_metric(
-    variant: str,
-    retrieval_time_ms: float,
-    cache_hit: bool,
-    num_results: int,
-    context_coherence: Optional[float] = None,
-    primed_count: int = 0,
-    query_id: Optional[str] = None
-):
+async def record_ab_test_metric(request: ABTestMetricRequest):
     """
     Record an A/B test metric for performance comparison
 
@@ -2024,28 +2025,28 @@ async def record_ab_test_metric(
         ab_manager = get_ab_test_manager(DB_CONN_STRING)
 
         # Validate variant
-        test_variant = TestVariant(variant)
+        test_variant = TestVariant(request.variant)
 
         # Record the metric
         ab_manager.record_retrieval(
             variant=test_variant,
-            retrieval_time_ms=retrieval_time_ms,
-            cache_hit=cache_hit,
-            num_results=num_results,
-            context_coherence=context_coherence,
-            primed_count=primed_count,
-            query_id=query_id
+            retrieval_time_ms=request.retrieval_time_ms,
+            cache_hit=request.cache_hit,
+            num_results=request.num_results,
+            context_coherence=request.context_coherence,
+            primed_count=request.primed_count,
+            query_id=request.query_id
         )
 
         return {
             "success": True,
-            "variant": variant,
+            "variant": request.variant,
             "message": "Metric recorded successfully"
         }
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid variant: {variant}. Must be 'control' or 'treatment'"
+            detail=f"Invalid variant: {request.variant}. Must be 'control' or 'treatment'"
         )
     except Exception as e:
         raise HTTPException(
