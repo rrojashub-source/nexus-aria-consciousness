@@ -9,6 +9,7 @@ import LABStatus from '@/components/LABStatus';
 import EpisodesTimeline from '@/components/EpisodesTimeline';
 import StatsPanel from '@/components/StatsPanel';
 import BrainModel3D from '@/components/BrainModel3D';
+import ABTestingDashboard from '@/components/ABTestingDashboard';
 
 type ViewMode = '2d' | '3d';
 
@@ -62,7 +63,10 @@ export default function Home() {
             {/* Row 2: LAB Status */}
             <LABStatus />
 
-            {/* Row 3: Episodes + Stats */}
+            {/* Row 3: A/B Testing Dashboard */}
+            <ABTestingDashboard />
+
+            {/* Row 4: Episodes + Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <EpisodesTimeline episodes={nexusData.episodes} />

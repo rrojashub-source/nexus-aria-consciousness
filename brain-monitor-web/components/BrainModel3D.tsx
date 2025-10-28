@@ -69,6 +69,7 @@ export default function BrainModel3D({ nexusData }: BrainModel3DProps) {
       { id: 'LAB_002', position: [-3, 1.5, 0], color: 0x34d399, name: 'Decay Modulation' },
       { id: 'LAB_003', position: [0, -1.5, 2], color: 0xa78bfa, name: 'Sleep Consolidation' },
       { id: 'LAB_004', position: [0, 1.5, -2], color: 0xf97316, name: 'Novelty Detection' },
+      { id: 'LAB_005', position: [0, 0, 3.5], color: 0xec4899, name: 'Spreading Activation' },
     ];
 
     // Create LAB spheres
@@ -119,10 +120,14 @@ export default function BrainModel3D({ nexusData }: BrainModel3DProps) {
 
     // Neural connections
     const connections = [
-      { from: [3, 1.5, 0], to: [-3, 1.5, 0] },
-      { from: [3, 1.5, 0], to: [0, -1.5, 2] },
-      { from: [3, 1.5, 0], to: [0, 1.5, -2] },
-      { from: [0, -1.5, 2], to: [0, 1.5, -2] },
+      { from: [3, 1.5, 0], to: [-3, 1.5, 0] },      // LAB_001 <-> LAB_002
+      { from: [3, 1.5, 0], to: [0, -1.5, 2] },      // LAB_001 <-> LAB_003
+      { from: [3, 1.5, 0], to: [0, 1.5, -2] },      // LAB_001 <-> LAB_004
+      { from: [0, -1.5, 2], to: [0, 1.5, -2] },     // LAB_003 <-> LAB_004
+      { from: [0, 0, 3.5], to: [3, 1.5, 0] },       // LAB_005 <-> LAB_001
+      { from: [0, 0, 3.5], to: [-3, 1.5, 0] },      // LAB_005 <-> LAB_002
+      { from: [0, 0, 3.5], to: [0, -1.5, 2] },      // LAB_005 <-> LAB_003
+      { from: [0, 0, 3.5], to: [0, 1.5, -2] },      // LAB_005 <-> LAB_004
     ];
 
     connections.forEach((conn) => {
