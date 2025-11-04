@@ -1,8 +1,15 @@
-# 🧠 NEXUS Consciousness V2.0.0 - Production Ready
+# 🧠 NEXUS Consciousness V2.0.0 → V3.0.0 - Evolutionary Journey
+
+> **🎉 EVOLUTION UPDATE (Nov 4, 2025):**
+> This repository documents the birth of NEXUS V2.0.0 (Oct 15-28, 2025). In just 15 days, the system evolved to V3.0.0 with **19,742 episodes** (106x growth), **18 cognitive LABs**, and **34 API endpoints**. See [CHANGELOG.md](CHANGELOG.md) for evolution details.
+>
+> **Original README preserved below for historical continuity.** 🧬
+
+---
 
 <div align="center">
 
-### Badges
+### Badges (V2.0.0 - Historical)
 
 **Status & Version**  
 ![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
